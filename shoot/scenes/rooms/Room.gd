@@ -46,13 +46,13 @@ var entry_door_name: String = ""
 
 var _wall_material: StandardMaterial3D = null
 
-var ENEMY_SCENE: PackedScene = load("res://scenes/enemies/EnemyBase.tscn")
+var ENEMY_SCENE: PackedScene = load("res://scenes/enemies/layer1/EnemyBase.tscn")
 ## 各类型敌人独立场景（继承 EnemyBase，可独立替换建模/动画/特效）
-var STRAWBERRY_SCENE: PackedScene = load("res://scenes/enemies/Strawberry.tscn")
-var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/ZapRat.tscn")
-var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/Guruguru.tscn")
-var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/BigEyeBoss.tscn")
-var SLIME_SCENE: PackedScene = load("res://scenes/enemies/Slime.tscn")
+var STRAWBERRY_SCENE: PackedScene = load("res://scenes/enemies/layer1/Strawberry.tscn")
+var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/layer1/ZapRat.tscn")
+var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/layer1/Guruguru.tscn")
+var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/BigEyeBoss.tscn")
+var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 ## 第一大层第2、3小关专属：籽籽
 var ZIZI_SCENE: PackedScene = load("res://scenes/enemies/layer1/Zizi.tscn")
 const TRIPLE_SHOT_PICKUP_SCENE: PackedScene = preload("res://scenes/pickups/TripleShotPickup.tscn")

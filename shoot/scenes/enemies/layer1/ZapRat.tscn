@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cqxmn9k3p5o2nb"]
 
-[ext_resource type="Script" path="res://scenes/enemies/ZapRat.gd" id="zaprat_script"]
+[ext_resource type="Script" path="res://scenes/enemies/layer1/ZapRat.gd" id="zaprat_script"]
 [ext_resource type="Texture2D" path="res://assets/enemies/layer1/zaprat/ZapRat.png" id="zaprat_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
 

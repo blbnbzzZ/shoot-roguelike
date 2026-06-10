@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://xjodmbts6umo"]
 
-[ext_resource type="Script" uid="uid://bsmn73e7xfroh" path="res://scenes/enemies/EnemyBase.gd" id="enemy_script"]
+[ext_resource type="Script" uid="uid://bsmn73e7xfroh" path="res://scenes/enemies/layer1/EnemyBase.gd" id="enemy_script"]
 [ext_resource type="Texture2D" uid="uid://cig23e1qrd422" path="res://icon.svg" id="enemy_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
 

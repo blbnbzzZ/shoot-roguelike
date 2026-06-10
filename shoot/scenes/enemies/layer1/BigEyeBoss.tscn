@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://7jivyju8j7yf"]
 
-[ext_resource type="Script" uid="uid://bk5tb74i50dvb" path="res://scenes/enemies/BigEyeBoss.gd" id="bigeye_boss_script"]
+[ext_resource type="Script" uid="uid://bk5tb74i50dvb" path="res://scenes/enemies/layer1/BigEyeBoss.gd" id="bigeye_boss_script"]
 [ext_resource type="Texture2D" path="res://assets/enemies/layer1/bigeyeboss/BigEyeBoss.png" id="bigeye_boss_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
 

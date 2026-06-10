@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://drxyn0l4q6p3oc"]
 
-[ext_resource type="Script" path="res://scenes/enemies/Guruguru.gd" id="guruguru_script"]
+[ext_resource type="Script" path="res://scenes/enemies/layer1/Guruguru.gd" id="guruguru_script"]
 [ext_resource type="Texture2D" path="res://assets/enemies/layer1/guruguru/Guruguru.png" id="guruguru_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
 
