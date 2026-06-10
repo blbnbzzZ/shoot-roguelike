@@ -32,20 +32,30 @@ offset_bottom = 47.0
 step = 0.0
 value = 100.0
 
-[node name="CoinLabel" type="Label" parent="CanvasLayer/UI"]
+[node name="StaminaBar" type="ProgressBar" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 50.0
 offset_right = 220.0
-offset_bottom = 80.0
+offset_bottom = 65.0
+step = 0.0
+value = 100.0
+modulate = Color(1.0, 0.9, 0.0, 1.0)
+
+[node name="CoinLabel" type="Label" parent="CanvasLayer/UI"]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 220.0
+offset_bottom = 100.0
 text = "硬币: 0"
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 20.0
-offset_top = 85.0
+offset_top = 105.0
 offset_right = 220.0
-offset_bottom = 115.0
+offset_bottom = 135.0
 text = "得分: 0"
 
 [node name="FloorLabel" type="Label" parent="CanvasLayer/UI"]

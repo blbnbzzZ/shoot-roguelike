@@ -18,6 +18,7 @@ const ROOM_HUGE_SCENE: PackedScene = preload("res://scenes/rooms/RoomTemplateHug
 @onready var minimap = $CanvasLayer/Minimap
 @onready var death_screen = $CanvasLayer/DeathScreen
 @onready var buff_ui = $CanvasLayer/BuffUI
+@onready var ui_stamina: ProgressBar = $CanvasLayer/UI/StaminaBar
 
 ## 黑色转场
 var _transition_rect: ColorRect = null
@@ -317,6 +318,9 @@ func _generate_floor() -> void:
 				room.room_type = Room.RoomType.SAFE
 				room.enemy_count = 0
 				_cleared[i] = true
+				## 第一层第一关的出生点显示操作提示
+				if _current_layer == 1 and _floor == 1:
+					room.show_help_text = true
 			elif i == _boss_room_index:
 				room.room_type = Room.RoomType.BOSS
 				room.enemy_count = 1
@@ -1136,6 +1140,18 @@ func _clean_up_game_clear_ui() -> void:
 func _update_minimap() -> void:
 	if minimap and minimap.has_method("update_map"):
 		minimap.update_map(_room_positions, _room_connections, _discovered, _current_room_index, _cleared, _room_types)
+
+
+## 更新体力条（显示冲刺冷却进度）
+func _process(_delta: float) -> void:
+	if player and ui_stamina:
+		var cd_timer: Timer = player.get_node_or_null("RollCDTimer")
+		if cd_timer and cd_timer.time_left > 0.0:
+			## 冷却中：显示剩余时间百分比
+			ui_stamina.value = 100.0 * (1.0 - cd_timer.time_left / cd_timer.wait_time)
+		else:
+			## 可用：满值
+			ui_stamina.value = 100.0
 
 
 func _on_restart_game() -> void:
