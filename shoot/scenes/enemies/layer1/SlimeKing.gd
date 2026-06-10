@@ -467,16 +467,91 @@ func _absorb_slime(slime: Slime) -> void:
 	_absorb_timer = ABSORB_COOLDOWN
 	## 恢复生命值
 	if health_comp:
-		health_comp.apply_healing(ABSORB_HEAL_AMOUNT)
-	## 播放吸收动画效果
+		health_comp.heal(ABSORB_HEAL_AMOUNT)
+	## 播放吸收动画效果（史莱姆王身体鼓一下）
 	if sprite:
 		var tween := create_tween()
 		tween.tween_property(sprite, "scale", Vector3(1.2, 1.2, 1.2), 0.1)
 		tween.tween_property(sprite, "scale", Vector3.ONE, 0.2)
-	## 销毁小史莱姆
+	## 播放小史莱姆跳跃吞噬动画
+	_play_absorb_animation(slime)
+
+
+## 小史莱姆跳跃吞噬动画（类似玩家跳洞）
+func _play_absorb_animation(slime: Slime) -> void:
+	if not is_instance_valid(slime):
+		return
+
+	## 从追踪列表中移除
 	if slime in _spawned_slimes:
 		_spawned_slimes.erase(slime)
-	slime.queue_free()
+
+	## 禁用小史莱姆的碰撞和AI
+	slime.set_physics_process(false)
+	slime.set_process(false)
+	var slime_hit_box := slime.get_node_or_null("HitBox") as CollisionShape3D
+	var slime_body := slime.get_node_or_null("Body") as CollisionShape3D
+	if slime_hit_box:
+		slime_hit_box.disabled = true
+	if slime_body:
+		slime_body.disabled = true
+
+	## 获取史莱姆王精灵的位置（世界坐标）
+	var target_pos: Vector3 = global_position
+	if sprite:
+		target_pos = sprite.global_position
+
+	## 创建跳跃动画（抛物线轨迹）
+	var start_pos: Vector3 = slime.global_position
+	var mid_pos: Vector3 = (start_pos + target_pos) * 0.5
+	mid_pos.y += 80.0  ## 跳跃高度
+
+	var tween := create_tween()
+	tween.set_parallel(false)
+
+	## 第一阶段：跳到最高点（0.25秒）
+	tween.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(slime):
+				return
+			var p := start_pos.lerp(mid_pos, t)
+			## 添加横向的弧线偏移
+			var arc := sin(t * PI) * 30.0
+			p.x += arc * (1.0 if randf() > 0.5 else -1.0)
+			p.z += arc * (randf() - 0.5) * 0.5
+			slime.global_position = p
+			## 旋转效果（翻滚）
+			if is_instance_valid(slime) and slime.sprite:
+				slime.sprite.rotation_degrees.z = t * 360.0 * 0.5
+		,
+		0.0, 1.0, 0.25
+	)
+
+	## 第二阶段：从最高点落到史莱姆王身上（0.2秒）
+	tween.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(slime):
+				return
+			var p := mid_pos.lerp(target_pos, t)
+			## 加速下落效果
+			p.y -= sin(t * PI) * 20.0
+			slime.global_position = p
+			## 继续旋转
+			if is_instance_valid(slime) and slime.sprite:
+				slime.sprite.rotation_degrees.z += 15.0
+			## 逐渐缩小（被吸收的感觉）
+			if is_instance_valid(slime) and slime.sprite:
+				var scale_val := 1.0 - t * 0.7
+				slime.sprite.scale = Vector3(scale_val, scale_val, scale_val)
+		,
+		0.0, 1.0, 0.2
+	)
+
+	## 动画完成后销毁小史莱姆
+	tween.tween_callback(func():
+		if is_instance_valid(slime):
+			slime.queue_free()
+	)
 
 
 ## ── 凝胶分裂：受击时分裂小史莱姆 ──
