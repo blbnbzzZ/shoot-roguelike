@@ -8,14 +8,14 @@
 [ext_resource type="PackedScene" path="res://scenes/PauseMenu.tscn" id="pause_ref"]
 [ext_resource type="PackedScene" uid="uid://ceqowmialiy5k" path="res://scenes/player/Player.tscn" id="player_ref"]
 
-[node name="Main" type="Node3D" unique_id=419555675]
+[node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
-[node name="Player" parent="." unique_id=1851218227 instance=ExtResource("player_ref")]
+[node name="Player" parent="." instance=ExtResource("player_ref")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1915425693]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="UI" type="Control" parent="CanvasLayer" unique_id=489510867]
+[node name="UI" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,7 +23,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/UI" unique_id=1340672900]
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 20.0
@@ -32,7 +32,7 @@ offset_bottom = 47.0
 step = 0.0
 value = 100.0
 
-[node name="CoinLabel" type="Label" parent="CanvasLayer/UI" unique_id=298535530]
+[node name="CoinLabel" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 50.0
@@ -40,7 +40,7 @@ offset_right = 220.0
 offset_bottom = 80.0
 text = "硬币: 0"
 
-[node name="ScoreLabel" type="Label" parent="CanvasLayer/UI" unique_id=396789450]
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 85.0
@@ -48,7 +48,7 @@ offset_right = 220.0
 offset_bottom = 115.0
 text = "得分: 0"
 
-[node name="FloorLabel" type="Label" parent="CanvasLayer/UI" unique_id=1391853224]
+[node name="FloorLabel" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 1
 offset_left = 500.0
 offset_top = 20.0
@@ -99,12 +99,12 @@ text = "提示"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseMenu" parent="CanvasLayer" unique_id=2114015315 instance=ExtResource("pause_ref")]
+[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("pause_ref")]
 
-[node name="MainMenu" parent="CanvasLayer" unique_id=1490659878 instance=ExtResource("menu_ref")]
+[node name="MainMenu" parent="CanvasLayer" instance=ExtResource("menu_ref")]
 visible = false
 
-[node name="Minimap" parent="CanvasLayer" unique_id=1805445914 instance=ExtResource("minimap_ref")]
+[node name="Minimap" parent="CanvasLayer" instance=ExtResource("minimap_ref")]
 visible = false
 
-[node name="DeathScreen" parent="CanvasLayer" unique_id=1318033295 instance=ExtResource("death_ref")]
+[node name="DeathScreen" parent="CanvasLayer" instance=ExtResource("death_ref")]
