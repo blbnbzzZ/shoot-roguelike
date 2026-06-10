@@ -73,7 +73,8 @@ func _physics_process(delta: float) -> void:
 		for result in results:
 			var body := result.collider as Node3D
 			if body and body != get_parent() and not body.is_queued_for_deletion():
-				if body.collision_layer & 4 != 0:
+				## 修复：同时检查墙壁层(4)和子弹阻挡层(16)，确保子弹被墙和子弹墙正确销毁
+				if body.collision_layer & 4 != 0 or body.collision_layer & 16 != 0:
 					queue_free()
 					return
 				_on_body_hit(body)
@@ -118,10 +119,11 @@ func _on_body_hit(body: Node3D) -> void:
 		print("Projectile hit parent, ignoring")
 		return
 
-	## 如果是墙壁（Layer 3 = Wall），直接销毁子弹
+	## 如果是墙壁或子弹阻挡墙，直接销毁子弹
 	if body.has_method("get_collision_layer") or "collision_layer" in body:
-		if body.collision_layer & 4 != 0:
-			print("Projectile hit wall, destroying")
+		## 修复：同时检查墙壁层(4)和子弹阻挡层(16)
+		if body.collision_layer & 4 != 0 or body.collision_layer & 16 != 0:
+			print("Projectile hit wall/barrier, destroying")
 			queue_free()
 			return
 

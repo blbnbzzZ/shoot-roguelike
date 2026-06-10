@@ -50,8 +50,9 @@ func _on_body_hit(body: Node3D) -> void:
 	## 忽略自己发出的子弹（如果有）
 	if body == get_parent():
 		return
-	## 如果是墙壁（Layer 3 = Wall），直接销毁子弹
-	if body.collision_layer & 4 != 0:
+	## 如果是墙壁或子弹阻挡墙，直接销毁子弹
+	## 修复：同时检查墙壁层(4)和子弹阻挡层(16)
+	if body.collision_layer & 4 != 0 or body.collision_layer & 16 != 0:
 		queue_free()
 		return
 	## 尝试对任何有 HealthComponent 的物体造成伤害

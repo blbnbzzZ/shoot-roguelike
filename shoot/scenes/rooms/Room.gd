@@ -761,8 +761,9 @@ func _spawn_smg_pickup() -> void:
 
 ## ── 子弹阻挡墙（只挡子弹，不挡玩家/敌人）──
 ## 每个门口放置一个不可见的 StaticBody3D（collision_layer=16=子弹阻挡层）
-## 玩家子弹 mask 包含 16 → 检测到后销毁；敌人子弹同理
-## 玩家 collision_mask=7 不包含 16 → 完全忽略此墙
+## 玩家子弹 mask 包含 16，敌人子弹 mask 包含 16 → 检测到后销毁
+## 玩家 collision_mask=7 不包含 16 → 完全忽略此墙，不会蹭门
+## 注意：Projectile.gd 和 EnemyProjectile.gd 中已修复，同时检查 &4(墙) 和 &16(子弹墙)
 func _spawn_bullet_barriers() -> void:
 	for door in doors.get_children():
 		if not door is Area3D:
