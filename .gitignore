@@ -1,0 +1,27 @@
+# Godot 4 项目 .gitignore
+
+# Godot 4 缓存目录
+.godot/
+
+# Godot 导入文件（自动生成）
+*.import
+
+# 临时文件
+*.tmp
+*.swap
+*~
+
+# IDE 配置
+.vscode/
+.idea/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Python (如果使用 Python 脚本)
+__pycache__/
+*.pyc
+
+# 日志文件
+*.log
