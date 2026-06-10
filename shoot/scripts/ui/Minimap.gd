@@ -19,6 +19,9 @@ const COLOR_CLEARED := Color(0.5, 0.5, 0.5, 1.0)  ## 已清理的房间 - 灰色
 const COLOR_UNCLEARED := Color(0.0, 0.0, 0.0, 1.0)  ## 未清理的房间 - 黑色
 const COLOR_CONNECTION := Color(0.35, 0.35, 0.35, 1.0)
 const COLOR_BG := Color(0.05, 0.05, 0.05, 0.5)  ## 背景色改浅，与缩小版一致
+const COLOR_REWARD_OUTLINE := Color(1.0, 0.5, 0.8, 1.0)  ## 奖励房描边 - 粉色
+const COLOR_BOSS_OUTLINE := Color(1.0, 0.0, 0.0, 1.0)  ## Boss房描边 - 红色
+const OUTLINE_WIDTH: float = 2.0  ## 描边宽度
 
 var _cleared: Array[bool] = []  ## 新增：记录房间是否已清理
 
@@ -164,3 +167,13 @@ func _draw() -> void:
 
 		var col := COLOR_CURRENT if i == _current_index else (COLOR_CLEARED if _cleared.has(i) and _cleared[i] else COLOR_UNCLEARED)
 		draw_rect(rect, col)
+
+		## 绘制奖励房（粉色）和Boss房（红色）的描边
+		if i < _room_types.size():
+			var rt := _room_types[i] as int
+			if rt == Room.RoomType.REWARD:
+				## 奖励房 - 粉色描边
+				draw_rect(rect, COLOR_REWARD_OUTLINE, false, OUTLINE_WIDTH)
+			elif rt == Room.RoomType.BOSS:
+				## Boss房 - 红色描边
+				draw_rect(rect, COLOR_BOSS_OUTLINE, false, OUTLINE_WIDTH)

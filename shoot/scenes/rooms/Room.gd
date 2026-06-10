@@ -14,6 +14,7 @@ var floor_number: int = 1
 ## 当前大层编号（1-3，由 Main.gd 设置，决定刷哪些怪物）
 var layer_number: int = 1
 var _slimes_spawned: bool = false  ## 防止史莱姆重复生成
+var show_help_text: bool = false  ## 是否在出生点显示操作提示
 
 ## 邻居房间索引：门名 -> 房间索引（由 Main 设置）
 var neighbor_indices: Dictionary = {}
@@ -225,6 +226,10 @@ func _update_door_visibility() -> void:
 func _on_player_enter(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
+	## 出生点提示：仅第一次进入出生点时显示操作提示
+	if show_help_text:
+		_spawn_help_text()
+		show_help_text = false
 	## 安全网：如果玩家物理穿墙进入了一个已启动且已清理的房间（绕过了正常门传送）
 	## 确保门是开的，让玩家能正常离开；否则走正常激活流程
 	if _started and _cleared:
@@ -791,3 +796,16 @@ func _spawn_bullet_barriers() -> void:
 		## 放到门节点下方，继承门的精确位置
 		door.add_child(barrier)
 		_bullet_barriers.append(barrier)
+
+## 在出生点地面显示操作提示（仅第一层第一关显示）
+func _spawn_help_text() -> void:
+	if has_node("HelpText"):
+		return  # 已生成过，不再重复
+	var label := Label3D.new()
+	label.name = "HelpText"
+	label.text = "WASD移动，空格冲刺，鼠标左键攻击"
+	label.position = Vector3(0, 0.2, 0)  # 略高于地面
+	label.font_size = 32
+	label.modulate = Color.WHITE
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 始终面向相机
+	add_child(label)
