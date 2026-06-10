@@ -538,6 +538,12 @@ func _enter_room(index: int, entry_dir: int, entry_door_name: String = "") -> vo
 		var det := r.get_node_or_null("PlayerDetector") as Area3D
 		if det:
 			det.call_deferred("set_monitoring", false)
+		## 禁用该房间所有门的 Area3D monitoring，防止旧房间门干扰传送
+		var door_container := r.get_node_or_null("Doors") as Node3D
+		if door_container:
+			for door in door_container.get_children():
+				if door is Area3D:
+					door.monitoring = false
 
 	var source_index: int = _current_room_index
 	_current_room_index = index
@@ -547,10 +553,18 @@ func _enter_room(index: int, entry_dir: int, entry_door_name: String = "") -> vo
 	## 大/超大房间：根据源房间索引，反查目标房间中对应入口门的正确门名
 	## （传入的 entry_door_name 是源房间的门名，目标房间需要的是自己的门名）
 	if room.room_type in [Room.RoomType.LARGE, Room.RoomType.HUGE]:
+		var found := false
 		for door_name in room.neighbor_indices:
 			if room.neighbor_indices[door_name] == source_index:
 				entry_door_name = door_name
+				found = true
 				break
+		## 防御性回退：如果没找到精确匹配，尝试用传入的门名模糊匹配
+		if not found and entry_door_name != "":
+			for door_name in room.neighbor_indices.keys():
+				if door_name.begins_with(entry_door_name):
+					entry_door_name = door_name
+					break
 
 	room.entry_door_name = entry_door_name
 	room.visible = true

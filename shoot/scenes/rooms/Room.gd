@@ -102,6 +102,10 @@ func get_spawn_local_position() -> Vector3:
 			}
 			if large_door_positions.has(entry_door_name):
 				return large_door_positions[entry_door_name]
+			## 防御性模糊匹配：如 "SouthDoor" 匹配 "SouthDoor1" / "SouthDoor2"
+			for key in large_door_positions.keys():
+				if key.begins_with(entry_door_name):
+					return large_door_positions[key]
 		elif room_type == RoomType.HUGE:
 			var huge_door_positions := {
 				"NorthDoor1": Vector3(320, 1, 60),
@@ -115,6 +119,10 @@ func get_spawn_local_position() -> Vector3:
 			}
 			if huge_door_positions.has(entry_door_name):
 				return huge_door_positions[entry_door_name]
+			## 防御性模糊匹配
+			for key in huge_door_positions.keys():
+				if key.begins_with(entry_door_name):
+					return huge_door_positions[key]
 	## 普通房间或回退：按方向生成
 	return ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
 
@@ -752,17 +760,17 @@ func _spawn_smg_pickup() -> void:
 
 
 ## ── 子弹阻挡墙（只挡子弹，不挡玩家/敌人）──
-## 每个门口放置一个不可见的 StaticBody3D（collision_layer=4=墙壁层）
-## 玩家子弹 mask 包含 4 → 检测到后销毁；敌人子弹同理
-## 玩家/敌人 collision_mask=16 → 完全忽略此墙
+## 每个门口放置一个不可见的 StaticBody3D（collision_layer=16=子弹阻挡层）
+## 玩家子弹 mask 包含 16 → 检测到后销毁；敌人子弹同理
+## 玩家 collision_mask=7 不包含 16 → 完全忽略此墙
 func _spawn_bullet_barriers() -> void:
 	for door in doors.get_children():
 		if not door is Area3D:
 			continue
 		var barrier := StaticBody3D.new()
 		barrier.name = "BulletBarrier_" + door.name
-		## 使用墙壁层(4)，与现有墙壁一致，子弹检测 &4 销毁
-		barrier.collision_layer = 4
+		## 使用子弹阻挡层(16)，玩家和敌人不会碰撞，只有子弹检测 &16 销毁
+		barrier.collision_layer = 16
 		barrier.collision_mask = 0
 
 		## 根据门方向设置碰撞体尺寸（覆盖整个门洞）
