@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
+
+[ext_resource type="Texture2D" uid="uid://cme3l8w7113rk" path="res://assets/sprites/witch_idle/which.png" id="1_idle"]
+[ext_resource type="Texture2D" uid="uid://clmdksu2cwmci" path="res://assets/sprites/witch_walk/sprite-001_chroma.png" id="2_w1"]
+[ext_resource type="Texture2D" uid="uid://c4xfasb8hoy8r" path="res://assets/sprites/witch_walk/sprite-002 _chroma.png" id="3_w2"]
+[ext_resource type="Texture2D" uid="uid://b3m0pcimfguus" path="res://assets/sprites/witch_walk/sprite-003_chroma.png" id="4_w3"]
+[ext_resource type="Texture2D" uid="uid://c2d3um75gfr2i" path="res://assets/sprites/witch_walk/sprite-004_chroma.png" id="5_w4"]
+[ext_resource type="Texture2D" uid="uid://de8i6mdd5a85m" path="res://assets/sprites/witch_walk/sprite-005_chroma.png" id="6_w5"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_w1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_w2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_w3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_w4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_w5")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}]

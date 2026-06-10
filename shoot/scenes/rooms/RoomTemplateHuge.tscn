@@ -1,0 +1,331 @@
+[gd_scene format=3 uid="uid://cg0ugmfqrcx4k"]
+
+[ext_resource type="Script" uid="uid://uqsg50iclcp0" path="res://scenes/rooms/Room.gd" id="room_script"]
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+size = Vector3(1280, 1, 1280)
+
+[sub_resource type="StandardMaterial3D" id="FloorMat"]
+albedo_color = Color(0.14509805, 0.37254903, 0.07058824, 1)
+
+[sub_resource type="BoxMesh" id="WallHMesh600"]
+size = Vector3(280, 50, 20)
+
+[sub_resource type="BoxShape3D" id="BoxWallH600"]
+size = Vector3(280, 100, 20)
+
+[sub_resource type="BoxMesh" id="WallHMesh1200"]
+size = Vector3(560, 50, 20)
+
+[sub_resource type="BoxShape3D" id="BoxWallH1200"]
+size = Vector3(720, 100, 20)
+
+[sub_resource type="BoxMesh" id="WallHMesh560"]
+size = Vector3(280, 50, 20)
+
+[sub_resource type="BoxShape3D" id="BoxWallH560"]
+size = Vector3(280, 100, 20)
+
+[sub_resource type="BoxMesh" id="WallVMesh200"]
+size = Vector3(20, 50, 280)
+
+[sub_resource type="BoxShape3D" id="BoxWallV200"]
+size = Vector3(20, 100, 280)
+
+[sub_resource type="BoxMesh" id="WallVMesh400"]
+size = Vector3(20, 50, 560)
+
+[sub_resource type="BoxShape3D" id="BoxWallV400"]
+size = Vector3(20, 100, 720)
+
+[sub_resource type="BoxMesh" id="DoorHMesh"]
+size = Vector3(80, 2, 20)
+
+[sub_resource type="StandardMaterial3D" id="DoorMat"]
+albedo_color = Color(0.5, 0.5, 0.5, 1)
+
+[sub_resource type="BoxShape3D" id="BoxDoorH"]
+size = Vector3(142.49756, 100, 20)
+
+[sub_resource type="BoxMesh" id="DoorVMesh"]
+size = Vector3(20, 2, 80)
+
+[sub_resource type="BoxShape3D" id="BoxDoorV"]
+size = Vector3(20, 100, 80)
+
+[sub_resource type="BoxShape3D" id="BoxDetectorHuge"]
+size = Vector3(1200, 10, 1200)
+
+[node name="RoomTemplateHuge" type="Node3D" unique_id=1349130628]
+script = ExtResource("room_script")
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=1340197653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 640, -0.5, 640)
+mesh = SubResource("FloorMesh")
+surface_material_override/0 = SubResource("FloorMat")
+
+[node name="Walls" type="Node3D" parent="." unique_id=2016534736]
+
+[node name="TopL" type="StaticBody3D" parent="Walls" unique_id=520671573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 3, 10)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/TopL" unique_id=766195319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh600")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/TopL" unique_id=1058259151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH600")
+
+[node name="TopM" type="StaticBody3D" parent="Walls" unique_id=1054657628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 640, 3, 10)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/TopM" unique_id=2063164544]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh1200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/TopM" unique_id=1218574772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH1200")
+
+[node name="TopR" type="StaticBody3D" parent="Walls" unique_id=1961356246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1140, 3, 10)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/TopR" unique_id=785861076]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh560")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/TopR" unique_id=1687584830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH560")
+
+[node name="BotL" type="StaticBody3D" parent="Walls" unique_id=161921242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 140, 3, 1270)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/BotL" unique_id=849216811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh600")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/BotL" unique_id=507957615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH600")
+
+[node name="BotM" type="StaticBody3D" parent="Walls" unique_id=2126002519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 640, 3, 1270)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/BotM" unique_id=549955096]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh1200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/BotM" unique_id=1290556336]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH1200")
+
+[node name="BotR" type="StaticBody3D" parent="Walls" unique_id=675270061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1140, 3, 1270)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/BotR" unique_id=1349799582]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallHMesh560")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/BotR" unique_id=876593042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallH560")
+
+[node name="LefB" type="StaticBody3D" parent="Walls" unique_id=742086478]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, 140)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/LefB" unique_id=752997019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/LefB" unique_id=1225379850]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV200")
+
+[node name="LefM" type="StaticBody3D" parent="Walls" unique_id=2058080341]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, 640)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/LefM" unique_id=1629457372]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh400")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/LefM" unique_id=79258362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV400")
+
+[node name="LefT" type="StaticBody3D" parent="Walls" unique_id=887457980]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 3, 1140)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/LefT" unique_id=2100249406]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/LefT" unique_id=2036641648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV200")
+
+[node name="RigB" type="StaticBody3D" parent="Walls" unique_id=1529057758]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1270, 3, 140)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/RigB" unique_id=289313706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/RigB" unique_id=1754921507]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV200")
+
+[node name="RigM" type="StaticBody3D" parent="Walls" unique_id=1935717361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1270, 3, 640)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/RigM" unique_id=2090342107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh400")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/RigM" unique_id=1465464104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV400")
+
+[node name="RigT" type="StaticBody3D" parent="Walls" unique_id=1210604922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1270, 3, 1140)
+collision_layer = 4
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/RigT" unique_id=1168924604]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+mesh = SubResource("WallVMesh200")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/RigT" unique_id=1047968337]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxWallV200")
+
+[node name="Doors" type="Node3D" parent="." unique_id=1475497288]
+
+[node name="NorthDoor1" type="Area3D" parent="Doors" unique_id=342244397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320, 1, 10)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/NorthDoor1" unique_id=2133770311]
+mesh = SubResource("DoorHMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/NorthDoor1" unique_id=1685904944]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorH")
+
+[node name="NorthDoor2" type="Area3D" parent="Doors" unique_id=2075042763]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 960, 1, 10)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/NorthDoor2" unique_id=2033065132]
+mesh = SubResource("DoorHMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/NorthDoor2" unique_id=1495974285]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.503418, 50, 0)
+shape = SubResource("BoxDoorH")
+
+[node name="SouthDoor1" type="Area3D" parent="Doors" unique_id=1365602270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320, 1, 1270)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/SouthDoor1" unique_id=797268209]
+mesh = SubResource("DoorHMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/SouthDoor1" unique_id=969833998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorH")
+
+[node name="SouthDoor2" type="Area3D" parent="Doors" unique_id=1962036069]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 960, 1, 1270)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/SouthDoor2" unique_id=929127204]
+mesh = SubResource("DoorHMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/SouthDoor2" unique_id=1749839183]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.745361, 50, 0)
+shape = SubResource("BoxDoorH")
+
+[node name="WestDoor1" type="Area3D" parent="Doors" unique_id=1913726950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 320)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/WestDoor1" unique_id=2070977599]
+mesh = SubResource("DoorVMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/WestDoor1" unique_id=1189780635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorV")
+
+[node name="WestDoor2" type="Area3D" parent="Doors" unique_id=614894370]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1, 960)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/WestDoor2" unique_id=187606460]
+mesh = SubResource("DoorVMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/WestDoor2" unique_id=1844972696]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorV")
+
+[node name="EastDoor1" type="Area3D" parent="Doors" unique_id=1666308928]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1270, 1, 320)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/EastDoor1" unique_id=756763091]
+mesh = SubResource("DoorVMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/EastDoor1" unique_id=2043619056]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorV")
+
+[node name="EastDoor2" type="Area3D" parent="Doors" unique_id=833645275]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1270, 1, 960)
+collision_layer = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Doors/EastDoor2" unique_id=1487306322]
+mesh = SubResource("DoorVMesh")
+surface_material_override/0 = SubResource("DoorMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Doors/EastDoor2" unique_id=495384156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+shape = SubResource("BoxDoorV")
+
+[node name="Enemies" type="Node3D" parent="." unique_id=1472046440]
+
+[node name="PlayerDetector" type="Area3D" parent="." unique_id=1689063798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 640, 10, 640)
+collision_layer = 0
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerDetector" unique_id=997672888]
+shape = SubResource("BoxDetectorHuge")

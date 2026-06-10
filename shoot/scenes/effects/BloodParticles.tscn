@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://b0v8hiagub6q7"]
+
+[sub_resource type="StandardMaterial3D" id="blood_mat"]
+shading_mode = 0
+albedo_color = Color(0.85, 0.05, 0.1, 1)
+
+[sub_resource type="ParticleProcessMaterial" id="process_mat"]
+emission_shape = 1
+emission_sphere_radius = 1.0
+direction = Vector3(1, 0.5, 0)
+spread = 1.22
+initial_velocity_min = 15.0
+initial_velocity_max = 65.0
+gravity = Vector3(0, -55, 0)
+scale_min = 0.5
+scale_max = 2.2
+
+[sub_resource type="SphereMesh" id="sphere_mesh"]
+radius = 0.3
+height = 0.6
+
+[node name="BloodParticles" type="GPUParticles3D" unique_id=252047382]
+material_override = SubResource("blood_mat")
+emitting = false
+amount = 25
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.95
+interpolate = false
+process_material = SubResource("process_mat")
+draw_pass_1 = SubResource("sphere_mesh")

@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://cb8ouan8yy2bv"]
+
+[ext_resource type="Script" uid="uid://bc6k444ahdpbx" path="res://scripts/pickups/TripleShotPickup.gd" id="1_triple_shot_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j3gvu"]
+albedo_color = Color(0.38039216, 0.38039216, 0.4, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.3, 0.2, 0.1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vxl7y"]
+albedo_color = Color(0.40784314, 0.28235295, 0.19607843, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.3, 0.2, 0.1, 1)
+
+[sub_resource type="StandardMaterial3D" id="shotgun_material"]
+albedo_color = Color(0.24205023, 0.049791478, 0, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.3, 0.2, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="pickup_shape"]
+size = Vector3(25, 15, 60)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lgia7"]
+albedo_color = Color(0.42352942, 0.30588236, 0.21176471, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.3, 0.2, 0.1, 1)
+
+[node name="TripleShotPickup" type="CSGCombiner3D" unique_id=1384701004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, 10.241657)
+script = ExtResource("1_triple_shot_script")
+
+[node name="Barrel" type="CSGBox3D" parent="." unique_id=2036124463]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11.393555)
+size = Vector3(10, 7.5, 62.78711)
+material = SubResource("StandardMaterial3D_j3gvu")
+
+[node name="Body" type="CSGBox3D" parent="." unique_id=331812326]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, -15)
+size = Vector3(10, 10, 25)
+material = SubResource("StandardMaterial3D_vxl7y")
+
+[node name="Stock" type="CSGBox3D" parent="." unique_id=1036733572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, -32.5)
+size = Vector3(10, 12.5, 15)
+material = SubResource("shotgun_material")
+
+[node name="Grip" type="CSGBox3D" parent="." unique_id=1098864647]
+transform = Transform3D(1, 0, 0, 0, 0.7686967, -0.63961345, 0, 0.63961345, 0.7686967, 0, -12.5, -40.874714)
+size = Vector3(7.5, 15, 7.5)
+material = SubResource("shotgun_material")
+
+[node name="PickupArea" type="Area3D" parent="." unique_id=324108180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9.534443)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickupArea" unique_id=1687984137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18.154327)
+shape = SubResource("pickup_shape")
+
+[node name="GlowParticle" type="GPUParticles3D" parent="." unique_id=1515470893]
+amount = 30
+lifetime = 2.0
+
+[node name="GlowMesh" type="MeshInstance3D" parent="GlowParticle" unique_id=1864051475]
+visible = false
+
+[node name="Body2" type="CSGBox3D" parent="." unique_id=598542283]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5.3277817, 18.538479)
+size = Vector3(10, 10, 29.053253)
+material = SubResource("StandardMaterial3D_lgia7")
+
+[node name="Grip2" type="CSGBox3D" parent="." unique_id=646857456]
+transform = Transform3D(1, 0, 0, 0, 0.86489743, 0.5019485, 0, -0.5019485, 0.86489743, 0, -8.488834, -31.651733)
+size = Vector3(7.5, 5.2001953, 2.3945313)
+material = SubResource("shotgun_material")

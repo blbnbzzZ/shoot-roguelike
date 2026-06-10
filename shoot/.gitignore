@@ -1,0 +1,39 @@
+# Godot 4+ specific ignores
+*.import
+*.md5
+*.translation
+
+# Godot build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.pck
+*.zip
+.export/
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# SVG-Simplify exported file
+*.svg.import
+
+# Godot 4+ C# nuget pack & user config ignores
+.nuget/
+.nuget.metadata/
+appuser.local
+appuser.localvalue
+
+# LSP logs
+.lsp*.log
+
+# Local workspace memory (WorkBuddy)
+.workbuddy/
+
+# IDE and editor folders
+.vscode/
+.idea/
+*.swp
+*.swo

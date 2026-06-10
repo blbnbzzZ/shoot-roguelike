@@ -1,44 +1,44 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://7jivyju8j7yf"]
 
+[ext_resource type="Script" uid="uid://bk5tb74i50dvb" path="res://scenes/enemies/BigEyeBoss.gd" id="bigeye_boss_script"]
+[ext_resource type="Texture2D" path="res://assets/enemies/layer1/bigeyeboss/BigEyeBoss.png" id="bigeye_boss_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
-[ext_resource type="Script" path="res://scenes/enemies/layer1/Zizi.gd" id="zizi_script"]
-[ext_resource type="Texture2D" path="res://assets/enemies/layer1/zizi/zizi.png" id="zizi_tex"]
 
 [sub_resource type="CapsuleShape3D" id="capsule_shape"]
-radius = 19.0
-height = 43.0
+radius = 47.5
+height = 107.5
 
 [sub_resource type="BoxShape3D" id="hit_shape"]
-size = Vector3(40, 10, 40)
+size = Vector3(100, 25, 100)
 
 [sub_resource type="SphereShape3D" id="detect_sphere"]
 radius = 500.0
 
-[node name="Zizi" type="CharacterBody3D"]
+[node name="BigEyeBoss" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 7
-script = ExtResource("zizi_script")
+script = ExtResource("bigeye_boss_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 21.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 53.75, 0)
 shape = SubResource("capsule_shape")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18, 0)
-pixel_size = 0.025
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54, 0)
+pixel_size = 0.075
 billboard = 1
-texture = ExtResource("zizi_tex")
+texture = ExtResource("bigeye_boss_tex")
 
 [node name="HitBox" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.654335, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 56.6, 0)
 collision_layer = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38881302, 0.19996464, -0.32193518)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.97, 0.5, -0.8)
 shape = SubResource("hit_shape")
 
 [node name="Detection" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 36, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 90, 0)
 collision_layer = 0
 monitorable = false
 

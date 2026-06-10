@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://bi4d0wmbrmk8g"]
+
+[ext_resource type="Script" uid="uid://dnfw4b28annv" path="res://scenes/items/HealthPickup.gd" id="pickup_script"]
+
+[sub_resource type="BoxMesh" id="vertical_mesh"]
+size = Vector3(4, 20, 4)
+
+[sub_resource type="StandardMaterial3D" id="green_cross_material"]
+albedo_color = Color(0.15, 0.9, 0.15, 1)
+metallic = 0.3
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.1, 0.5, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="horizontal_mesh"]
+size = Vector3(20, 4, 4)
+
+[sub_resource type="SphereShape3D" id="pickup_shape"]
+radius = 20.0
+
+[sub_resource type="Animation" id="float_anim"]
+resource_name = "FloatAndSpin"
+length = 3.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CrossModel:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.5, 3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 14, 0), Vector3(0, 18, 0), Vector3(0, 14, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CrossModel:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 6.28319, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="anim_lib"]
+_data = {
+&"FloatAndSpin": SubResource("float_anim")
+}
+
+[node name="HealthPickup" type="Area3D" unique_id=1946030499]
+collision_layer = 32
+script = ExtResource("pickup_script")
+
+[node name="CrossModel" type="Node3D" parent="." unique_id=1840080846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)
+
+[node name="VerticalBar" type="MeshInstance3D" parent="CrossModel" unique_id=1935406654]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0090866, 0)
+mesh = SubResource("vertical_mesh")
+surface_material_override/0 = SubResource("green_cross_material")
+
+[node name="HorizontalBar" type="MeshInstance3D" parent="CrossModel" unique_id=48444314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.778805, 0.36494446)
+mesh = SubResource("horizontal_mesh")
+surface_material_override/0 = SubResource("green_cross_material")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1162010294]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)
+shape = SubResource("pickup_shape")
+
+[node name="LifeTimer" type="Timer" parent="." unique_id=232075913]
+wait_time = 15.0
+one_shot = true
+autostart = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1971434732]
+libraries/ = SubResource("anim_lib")
+autoplay = &"FloatAndSpin"

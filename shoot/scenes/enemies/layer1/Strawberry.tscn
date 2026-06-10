@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bqxm8k2n4p1ma"]
 
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
-[ext_resource type="Script" path="res://scenes/enemies/layer1/Zizi.gd" id="zizi_script"]
-[ext_resource type="Texture2D" path="res://assets/enemies/layer1/zizi/zizi.png" id="zizi_tex"]
+[ext_resource type="Script" uid="uid://diehc705jsha4" path="res://scenes/enemies/layer1/Strawberry.gd" id="strawberry_script"]
+[ext_resource type="Texture2D" uid="uid://bq27nfeewd3dd" path="res://assets/enemies/layer1/strawberry/strawberry.png" id="strawberry_tex"]
 
 [sub_resource type="CapsuleShape3D" id="capsule_shape"]
 radius = 19.0
@@ -14,10 +14,10 @@ size = Vector3(40, 10, 40)
 [sub_resource type="SphereShape3D" id="detect_sphere"]
 radius = 500.0
 
-[node name="Zizi" type="CharacterBody3D"]
+[node name="Strawberry" type="CharacterBody3D"]
 collision_layer = 2
 collision_mask = 7
-script = ExtResource("zizi_script")
+script = ExtResource("strawberry_script")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 21.5, 0)
@@ -27,7 +27,7 @@ shape = SubResource("capsule_shape")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 18, 0)
 pixel_size = 0.025
 billboard = 1
-texture = ExtResource("zizi_tex")
+texture = ExtResource("strawberry_tex")
 
 [node name="HitBox" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.654335, 0)

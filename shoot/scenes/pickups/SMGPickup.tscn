@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://bsmgpck01abc2"]
+
+[ext_resource type="Script" path="res://scripts/pickups/SMGPickup.gd" id="smg_script"]
+
+[sub_resource type="StandardMaterial3D" id="smg_barrel_mat"]
+albedo_color = Color(0.25, 0.28, 0.32, 1)
+metallic = 0.85
+roughness = 0.25
+emission_enabled = true
+emission = Color(0.15, 0.22, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="smg_body_mat"]
+albedo_color = Color(0.18, 0.22, 0.26, 1)
+metallic = 0.8
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.12, 0.18, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="smg_stock_mat"]
+albedo_color = Color(0.12, 0.15, 0.18, 1)
+metallic = 0.75
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.1, 0.15, 0.25, 1)
+
+[sub_resource type="StandardMaterial3D" id="smg_grip_mat"]
+albedo_color = Color(0.15, 0.14, 0.12, 1)
+metallic = 0.3
+roughness = 0.7
+
+[sub_resource type="BoxShape3D" id="pickup_shape"]
+size = Vector3(20, 12, 45)
+
+[node name="SMGPickup" type="CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 65, 10)
+script = ExtResource("smg_script")
+
+[node name="Barrel" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 13)
+size = Vector3(6, 5, 48)
+material = SubResource("smg_barrel_mat")
+
+[node name="Body" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -10)
+size = Vector3(8, 9, 20)
+material = SubResource("smg_body_mat")
+
+[node name="Stock" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, -24)
+size = Vector3(7, 10, 12)
+material = SubResource("smg_stock_mat")
+
+[node name="GripFront" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.75, -0.62, 0, 0.62, 0.75, 0, -8, -30)
+size = Vector3(5.5, 12, 5.5)
+material = SubResource("smg_grip_mat")
+
+[node name="Magazine" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -8, -5)
+size = Vector3(4, 14, 8)
+material = SubResource("smg_stock_mat")
+
+[node name="Sight" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 8)
+size = Vector3(3, 3, 12)
+material = SubResource("smg_barrel_mat")
+
+[node name="PickupArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickupArea"]
+shape = SubResource("pickup_shape")

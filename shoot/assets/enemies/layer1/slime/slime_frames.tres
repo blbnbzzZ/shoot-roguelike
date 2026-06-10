@@ -1,0 +1,48 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://c46wi4dow4ia3"]
+
+[ext_resource type="Texture2D" uid="uid://ceoxp1j1xunkl" path="res://assets/enemies/layer1/slime/slime_idle_1.png" id="1_idle1"]
+[ext_resource type="Texture2D" uid="uid://jkhuqjgnowsi" path="res://assets/enemies/layer1/slime/slime_idle_2.png" id="2_idle2"]
+[ext_resource type="Texture2D" uid="uid://b1lhnpwqe6kkk" path="res://assets/enemies/layer1/slime/slime_walk_1.png" id="3_walk1"]
+[ext_resource type="Texture2D" uid="uid://dlm3pbxs5g54n" path="res://assets/enemies/layer1/slime/slime_walk_2.png" id="4_walk2"]
+[ext_resource type="Texture2D" uid="uid://bgdbqb4fm31e1" path="res://assets/enemies/layer1/slime/slime_walk_3.png" id="5_walk3"]
+[ext_resource type="Texture2D" uid="uid://dgqix8its7ayk" path="res://assets/enemies/layer1/slime/slime_walk_4.png" id="6_walk4"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_idle2")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_walk3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_walk2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_walk1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_walk2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_walk1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_walk2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_walk4")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 6.0
+}]

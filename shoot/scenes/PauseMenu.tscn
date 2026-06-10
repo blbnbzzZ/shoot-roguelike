@@ -1,0 +1,84 @@
+[gd_scene load_steps=4 format=3 uid="uid://PauseMenu"]
+
+[ext_resource type="Script" path="res://scripts/PauseMenu.gd" id="pause_script"]
+[sub_resource type="StyleBoxFlat" id="btn_normal"]
+bg_color = Color(0.15, 0.15, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="btn_hover"]
+bg_color = Color(0.25, 0.25, 0.35, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.6, 0.8, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PauseMenu" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+process_mode = 1
+script = ExtResource("pause_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -80.0
+offset_right = 120.0
+offset_bottom = 80.0
+custom_constants/separation = 20
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "暂停"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="ResumeButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "返回游戏"
+theme_override_styles/normal = SubResource("btn_normal")
+theme_override_styles/hover = SubResource("btn_hover")
+theme_override_styles/pressed = SubResource("btn_hover")
+theme_override_font_sizes/font_size = 22
+
+[node name="QuitButton" type="Button" parent="VBox"]
+layout_mode = 2
+text = "退出游戏"
+theme_override_styles/normal = SubResource("btn_normal")
+theme_override_styles/hover = SubResource("btn_hover")
+theme_override_styles/pressed = SubResource("btn_hover")
+theme_override_font_sizes/font_size = 22

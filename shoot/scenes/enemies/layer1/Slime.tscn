@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://djffvq3u5ga0f"]
+
+[ext_resource type="Script" uid="uid://2rir8f32isnc" path="res://scripts/enemies/Slime.gd" id="1_slime"]
+[ext_resource type="SpriteFrames" uid="uid://c46wi4dow4ia3" path="res://assets/enemies/layer1/slime/slime_frames.tres" id="2_frames"]
+[ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
+
+[sub_resource type="CapsuleShape3D" id="capsule_shape"]
+radius = 12.0
+height = 24.0
+
+[sub_resource type="SphereShape3D" id="detect_sphere"]
+radius = 300.0
+
+[sub_resource type="BoxShape3D" id="hit_shape"]
+size = Vector3(24, 10, 24)
+
+[node name="Slime" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 7
+script = ExtResource("1_slime")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.081903, 0)
+shape = SubResource("capsule_shape")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 16, 0)
+pixel_size = 0.12
+billboard = 1
+sprite_frames = ExtResource("2_frames")
+animation = &"walk"
+frame = 1
+frame_progress = 0.82836336
+
+[node name="Detection" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12.238175, 0)
+collision_layer = 0
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Detection"]
+shape = SubResource("detect_sphere")
+
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.38751, 0)
+shape = SubResource("hit_shape")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("health_script")
+max_health = 1.0

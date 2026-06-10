@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://ceqowmialiy5k"]
+
+[ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
+[ext_resource type="Script" uid="uid://tdm8kvptwkp8" path="res://scripts/Player.gd" id="player_script"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/witch_frames.tres" id="witch_frames"]
+
+[sub_resource type="CapsuleShape3D" id="capsule_shape"]
+radius = 24.0
+height = 56.0
+
+[sub_resource type="CapsuleShape3D" id="interact_shape"]
+radius = 64.0
+height = 128.0
+
+[node name="Player" type="CharacterBody3D"]
+collision_mask = 7
+script = ExtResource("player_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("capsule_shape")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 36, 0)
+pixel_size = 0.2
+billboard = 1
+sprite_frames = ExtResource("witch_frames")
+animation = &"idle"
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, 0)
+
+[node name="Interaction" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 36, 0)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -34.103703, 0)
+shape = SubResource("interact_shape")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.49999997, 0.86602545, 0, -0.86602545, 0.49999997, 0, 300, 160)
+size = 250.0
+far = 2000.0
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("health_script")
+
+[node name="RollTimer" type="Timer" parent="."]
+wait_time = 0.25
+one_shot = true
+
+[node name="RollCDTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="CoyoteTimer" type="Timer" parent="."]
+wait_time = 0.05
+one_shot = true
+
+[node name="JumpBufferTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true

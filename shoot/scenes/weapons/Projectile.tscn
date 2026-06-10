@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://dpjw6k8tkkdu5"]
+
+[ext_resource type="Script" uid="uid://ci31xjq5vqicl" path="res://scenes/weapons/Projectile.gd" id="proj_script"]
+[ext_resource type="Texture2D" uid="uid://cig23e1qrd422" path="res://icon.svg" id="proj_tex"]
+
+[sub_resource type="SphereShape3D" id="proj_shape"]
+radius = 4.0
+
+[sub_resource type="SphereShape3D" id="hurt_shape"]
+radius = 4.0
+
+[node name="Projectile" type="Area3D" unique_id=8493438]
+collision_layer = 8
+collision_mask = 22
+script = ExtResource("proj_script")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1249392967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+pixel_size = 0.1
+billboard = 1
+texture = ExtResource("proj_tex")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1475669903]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.523571, 0)
+shape = SubResource("proj_shape")
+
+[node name="HurtBox" type="Area3D" parent="." unique_id=1216953656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+collision_layer = 0
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox" unique_id=1404694003]
+shape = SubResource("hurt_shape")
+
+[node name="LifeTimer" type="Timer" parent="." unique_id=1756676421]
+wait_time = 3.0
+one_shot = true
+autostart = true

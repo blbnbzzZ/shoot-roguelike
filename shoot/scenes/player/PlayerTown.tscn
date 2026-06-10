@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://PlayerTown"]
+
+[ext_resource type="Script" path="res://scripts/player/PlayerTown.gd" id="ptown_scr"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="ptex"]
+[ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="hc_scr"]
+
+[sub_resource type="CapsuleShape3D" id="col_shape"]
+radius = 10.0
+height = 24.0
+
+[sub_resource type="CapsuleShape3D" id="interact_shape"]
+radius = 30.0
+height = 50.0
+
+[node name="PlayerTown" type="CharacterBody3D"]
+script = ExtResource("ptown_scr")
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("col_shape")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+position = Vector3(0, 16, 0)
+texture = ExtResource("ptex")
+pixel_size = 0.08
+billboard = 1
+
+[node name="Interaction" type="Area3D" parent="."]
+position = Vector3(0, 16, 0)
+monitoring = true
+monitorable = false
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction"]
+shape = SubResource("interact_shape")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("hc_scr")

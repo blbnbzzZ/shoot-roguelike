@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://btulcpya0bh04"]
+
+[ext_resource type="Script" uid="uid://b2cuwp346s06i" path="res://scripts/pickups/HealthPack3D.gd" id="1_health_pack_script"]
+
+[sub_resource type="StandardMaterial3D" id="green_cross_material"]
+albedo_color = Color(0.15, 0.9, 0.15, 1)
+metallic = 0.3
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.1, 0.5, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="pickup_shape"]
+size = Vector3(1, 1, 0.3)
+
+[node name="HealthPack3D" type="CSGCombiner3D" unique_id=1885835768]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9378599, 0)
+script = ExtResource("1_health_pack_script")
+
+[node name="VerticalBar" type="CSGBox3D" parent="." unique_id=1929388749]
+size = Vector3(0.3, 1, 0.3)
+material = SubResource("green_cross_material")
+
+[node name="HorizontalBar" type="CSGBox3D" parent="." unique_id=1333410328]
+size = Vector3(1, 0.3, 0.3)
+material = SubResource("green_cross_material")
+
+[node name="PickupArea" type="Area3D" parent="." unique_id=1053173274]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickupArea" unique_id=1979971836]
+shape = SubResource("pickup_shape")
+
+[node name="GlowParticle" type="GPUParticles3D" parent="." unique_id=1854292119]
+amount = 20
+lifetime = 1.5
+
+[node name="GlowMesh" type="MeshInstance3D" parent="GlowParticle" unique_id=1163016858]
+visible = false
