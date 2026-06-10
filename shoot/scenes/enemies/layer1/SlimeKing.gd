@@ -510,42 +510,36 @@ func _play_absorb_animation(slime: Slime) -> void:
 	tween.set_parallel(false)
 
 	## 第一阶段：跳到最高点（0.25秒）
-	tween.tween_method(
-		func(t: float) -> void:
-			if not is_instance_valid(slime):
-				return
-			var p := start_pos.lerp(mid_pos, t)
-			## 添加横向的弧线偏移
-			var arc := sin(t * PI) * 30.0
-			p.x += arc * (1.0 if randf() > 0.5 else -1.0)
-			p.z += arc * (randf() - 0.5) * 0.5
-			slime.global_position = p
-			## 旋转效果（翻滚）
-			if is_instance_valid(slime) and slime.sprite:
-				slime.sprite.rotation_degrees.z = t * 360.0 * 0.5
-		,
-		0.0, 1.0, 0.25
-	)
+	var jump_up = func(t: float) -> void:
+		if not is_instance_valid(slime):
+			return
+		var p := start_pos.lerp(mid_pos, t)
+		## 添加横向的弧线偏移
+		var arc := sin(t * PI) * 30.0
+		p.x += arc * (1.0 if randf() > 0.5 else -1.0)
+		p.z += arc * (randf() - 0.5) * 0.5
+		slime.global_position = p
+		## 旋转效果（翻滚）
+		if is_instance_valid(slime) and slime.sprite:
+			slime.sprite.rotation_degrees.z = t * 360.0 * 0.5
+	tween.tween_method(jump_up, 0.0, 1.0, 0.25)
 
 	## 第二阶段：从最高点落到史莱姆王身上（0.2秒）
-	tween.tween_method(
-		func(t: float) -> void:
-			if not is_instance_valid(slime):
-				return
-			var p := mid_pos.lerp(target_pos, t)
-			## 加速下落效果
-			p.y -= sin(t * PI) * 20.0
-			slime.global_position = p
-			## 继续旋转
-			if is_instance_valid(slime) and slime.sprite:
-				slime.sprite.rotation_degrees.z += 15.0
-			## 逐渐缩小（被吸收的感觉）
-			if is_instance_valid(slime) and slime.sprite:
-				var scale_val := 1.0 - t * 0.7
-				slime.sprite.scale = Vector3(scale_val, scale_val, scale_val)
-		,
-		0.0, 1.0, 0.2
-	)
+	var jump_down = func(t: float) -> void:
+		if not is_instance_valid(slime):
+			return
+		var p := mid_pos.lerp(target_pos, t)
+		## 加速下落效果
+		p.y -= sin(t * PI) * 20.0
+		slime.global_position = p
+		## 继续旋转
+		if is_instance_valid(slime) and slime.sprite:
+			slime.sprite.rotation_degrees.z += 15.0
+		## 逐渐缩小（被吸收的感觉）
+		if is_instance_valid(slime) and slime.sprite:
+			var scale_val := 1.0 - t * 0.7
+			slime.sprite.scale = Vector3(scale_val, scale_val, scale_val)
+	tween.tween_method(jump_down, 0.0, 1.0, 0.2)
 
 	## 动画完成后销毁小史莱姆
 	tween.tween_callback(func():
