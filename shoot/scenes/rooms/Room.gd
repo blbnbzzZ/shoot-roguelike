@@ -53,6 +53,7 @@ var STRAWBERRY_SCENE: PackedScene = load("res://scenes/enemies/layer1/Strawberry
 var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/layer1/ZapRat.tscn")
 var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/layer1/Guruguru.tscn")
 var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/BigEyeBoss.tscn")
+var SLIME_KING_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKing.tscn")
 var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 ## 第一大层第2、3小关专属：籽籽
 var ZIZI_SCENE: PackedScene = load("res://scenes/enemies/layer1/Zizi.tscn")
@@ -460,8 +461,11 @@ func _get_random_enemy_scene() -> PackedScene:
 ## 根据当前大层编号返回对应Boss场景
 func _get_boss_scene() -> PackedScene:
 	match layer_number:
-		1, 2, 3:
-			## 三大层暂用同一个Boss（后续每层可替换为独立Boss）
+		1:
+			## 第一大层：史莱姆王
+			return SLIME_KING_SCENE
+		2, 3:
+			## 第二、三大层：大眼Boss（后续可替换）
 			return BIG_EYE_BOSS_SCENE
 		_:
 			return BIG_EYE_BOSS_SCENE
@@ -500,14 +504,17 @@ func _spawn_boss() -> void:
 	enemies_container.add_child(boss)
 
 	## 设置Boss血量（按大层递增）
-	var boss_hp: float = 2000.0
-	match layer_number:
-		1:  boss_hp = 2000.0
-		2:  boss_hp = 3500.0
-		3:  boss_hp = 5000.0
+	## 史莱姆王（第一大层）在自身脚本中已设置1600血量，这里不覆盖
+	if not boss is SlimeKing:
+		var boss_hp: float = 2000.0
+		match layer_number:
+			1:  boss_hp = 2000.0
+			2:  boss_hp = 3500.0
+			3:  boss_hp = 5000.0
+		if boss.health_comp:
+			boss.health_comp.max_health = boss_hp
+			boss.health_comp.current_health = boss_hp
 	if boss.health_comp:
-		boss.health_comp.max_health = boss_hp
-		boss.health_comp.current_health = boss_hp
 		boss.health_comp.invincible = false
 		boss.health_comp.died.connect(_on_enemy_died)
 

@@ -1,0 +1,554 @@
+## 史莱姆王 — Boss 敌人
+## 核心被动：碰撞小型史莱姆时吸收并恢复生命值
+## 四大技能：弹跳碾压、凝胶分裂、凝胶弹幕、全域弹幕
+class_name SlimeKing
+extends EnemyBase
+
+## ── 基础配置 ──
+const FLOAT_AMPLITUDE: float = 6.0     ## 上下浮动幅度
+const FLOAT_SPEED: float = 2.0         ## 浮动速度
+const STRETCH_AMOUNT: float = 0.2      ## 拉伸幅度
+
+## ── 技能参数 ──
+## 弹跳碾压
+const JUMP_PREPARE_TIME: float = 0.8    ## 蓄力时间（变扁）
+const JUMP_DURATION: float = 0.6        ## 跳跃持续时间
+const JUMP_HEIGHT: float = 120.0        ## 跳跃高度
+const JUMP_LAND_TIME: float = 0.3       ## 落地后硬直
+const JUMP_COOLDOWN: float = 2.0        ## 跳跃间隔
+const JUMP_COUNT_MIN: int = 2           ## 最少连续跳跃次数
+const JUMP_COUNT_MAX: int = 3           ## 最多连续跳跃次数
+const JUMP_REST_TIME: float = 2.5       ## 连续跳跃后的休息（安全输出窗口）
+
+## 凝胶分裂
+const SPLIT_CHANCE: float = 0.35        ## 受击分裂概率
+const SPLIT_MAX_SLIMES: int = 3         ## 最多同时存在的小史莱姆数
+const SPLIT_INVINCIBLE_TIME: float = 0.5 ## 新分裂史莱姆的无敌时间
+
+## 凝胶弹幕（扇形）
+const FAN_BULLET_COUNT_MIN: int = 8     ## 最少子弹数
+const FAN_BULLET_COUNT_MAX: int = 12    ## 最多子弹数
+const FAN_ANGLE: float = 30.0           ## 上下各30度扇形
+const FAN_PREPARE_TIME: float = 0.6     ## 蓄力时间（鼓起）
+const FAN_COOLDOWN: float = 4.0         ## 冷却时间
+const FAN_BULLET_SPEED_MIN: float = 40.0  ## 子弹最慢速度
+const FAN_BULLET_SPEED_MAX: float = 100.0 ## 子弹最快速度（接近玩家初始移动速度120）
+const FAN_BULLET_LIFE_MIN: float = 4.0  ## 子弹最短存在时间
+const FAN_BULLET_LIFE_MAX: float = 6.0  ## 子弹最长存在时间
+
+## 全域弹幕（环形）
+const CIRCLE_BULLET_COUNT: int = 16     ## 环形子弹数
+const CIRCLE_PREPARE_TIME: float = 0.5  ## 蓄力时间
+const CIRCLE_COOLDOWN: float = 5.0      ## 冷却时间
+const CIRCLE_BULLET_SPEED: float = 80.0 ## 环形子弹速度
+const CIRCLE_BULLET_LIFE: float = 5.0   ## 环形子弹存在时间
+
+## 被动：吸收小史莱姆恢复生命值
+const ABSORB_HEAL_AMOUNT: float = 50.0  ## 每次吸收恢复血量
+const ABSORB_COOLDOWN: float = 1.0      ## 吸收冷却
+
+## ── 内部状态 ──
+var _float_time: float = 0.0
+var _slime_king_state: int = SlimeKingState.IDLE
+var _jump_count: int = 0
+var _max_jump_count: int = 0
+var _jump_target: Vector3 = Vector3.ZERO
+var _jump_start_pos: Vector3 = Vector3.ZERO
+var _jump_timer: float = 0.0
+var _skill_timer: float = 0.0
+var _rest_timer: float = 0.0
+var _absorb_timer: float = 0.0
+var _spawned_slimes: Array[Node] = []   ## 已分裂的小史莱姆
+
+## 凝胶弹场景（使用敌人子弹场景，但修改外观和参数）
+const GEL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/EnemyProjectile.tscn")
+const SLIME_SCENE: PackedScene = preload("res://scenes/enemies/layer1/Slime.tscn")
+
+enum SlimeKingState {
+	IDLE,                ## 正常状态
+	JUMP_PREPARE,        ## 弹跳蓄力（变扁）
+	JUMPING,             ## 弹跳中
+	JUMP_LAND,           ## 落地
+	FAN_BURST_PREPARE,   ## 凝胶弹幕蓄力（鼓起）
+	FAN_BURST_FIRE,      ## 凝胶弹幕发射
+	CIRCLE_BURST_PREPARE,## 全域弹幕蓄力
+	CIRCLE_BURST_FIRE,   ## 全域弹幕发射
+	REST,                ## 休息（安全输出窗口）
+}
+
+## 技能冷却计时器
+var _jump_cd_timer: float = 0.0
+var _fan_cd_timer: float = 0.0
+var _circle_cd_timer: float = 0.0
+
+## 受击分裂冷却（防止连续受击连续分裂）
+var _split_cd_timer: float = 0.0
+
+## 预警红圈
+var _warning_circle: MeshInstance3D = null
+
+
+func _ready() -> void:
+	is_boss = true
+	move_speed = 50.0
+	contact_damage = 30.0
+	super._ready()
+
+	## 设置史莱姆王血量
+	if health_comp:
+		health_comp.max_health = 1600.0
+		health_comp.current_health = 1600.0
+
+	## 初始技能冷却
+	_jump_cd_timer = 2.0
+	_fan_cd_timer = 3.0
+	_circle_cd_timer = 4.0
+
+	## 设置碰撞检测吸收小史莱姆
+	if hit_box:
+		hit_box.body_entered.connect(_on_hit_box_body_entered)
+
+	## 创建预警红圈（初始隐藏）
+	_create_warning_circle()
+
+	_float_time = randf_range(0.0, TAU)
+
+
+func _create_warning_circle() -> void:
+	_warning_circle = MeshInstance3D.new()
+	_warning_circle.name = "WarningCircle"
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 40.0
+	cylinder.bottom_radius = 40.0
+	cylinder.height = 1.0
+	_warning_circle.mesh = cylinder
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.0, 0.0, 0.5)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_warning_circle.material_override = mat
+	_warning_circle.visible = false
+	_warning_circle.position.y = 0.5
+	add_child(_warning_circle)
+
+
+func _physics_process(delta: float) -> void:
+	## 更新浮动动画
+	_float_time += delta * FLOAT_SPEED
+	if sprite:
+		var float_y: float = sin(_float_time) * FLOAT_AMPLITUDE
+		sprite.position.y = 54.0 + float_y
+
+	## 更新技能冷却
+	if _jump_cd_timer > 0.0:
+		_jump_cd_timer -= delta
+	if _fan_cd_timer > 0.0:
+		_fan_cd_timer -= delta
+	if _circle_cd_timer > 0.0:
+		_circle_cd_timer -= delta
+	if _absorb_timer > 0.0:
+		_absorb_timer -= delta
+	if _split_cd_timer > 0.0:
+		_split_cd_timer -= delta
+
+	## 状态机处理
+	match _slime_king_state:
+		SlimeKingState.IDLE:
+			_process_idle_state(delta)
+		SlimeKingState.JUMP_PREPARE:
+			_process_jump_prepare(delta)
+		SlimeKingState.JUMPING:
+			_process_jumping(delta)
+		SlimeKingState.JUMP_LAND:
+			_process_jump_land(delta)
+		SlimeKingState.FAN_BURST_PREPARE:
+			_process_fan_prepare(delta)
+		SlimeKingState.FAN_BURST_FIRE:
+			_process_fan_fire()
+		SlimeKingState.CIRCLE_BURST_PREPARE:
+			_process_circle_prepare(delta)
+		SlimeKingState.CIRCLE_BURST_FIRE:
+			_process_circle_fire()
+		SlimeKingState.REST:
+			_process_rest(delta)
+
+	## Boss基础攻击（继承的扇形+单发）通过覆盖禁用，使用自定义技能
+	## 但保留击退和移动
+	if _knockback_velocity.length() > 0.1:
+		velocity += _knockback_velocity
+		_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, KNOCKBACK_DECAY * delta)
+
+	move_and_slide()
+
+
+## ── 状态处理 ──
+func _process_idle_state(delta: float) -> void:
+	## 面向玩家
+	if _player and sprite:
+		var dir: Vector3 = (_player.global_position - global_position).normalized()
+		sprite.flip_h = dir.x < 0.0
+
+	## 技能优先级：跳跃 > 扇形弹幕 > 环形弹幕
+	if _jump_cd_timer <= 0.0 and _player:
+		_enter_jump_prepare()
+	elif _fan_cd_timer <= 0.0 and _player:
+		_enter_fan_prepare()
+	elif _circle_cd_timer <= 0.0 and _player:
+		_enter_circle_prepare()
+
+
+## ── 弹跳碾压 ──
+func _enter_jump_prepare() -> void:
+	_slime_king_state = SlimeKingState.JUMP_PREPARE
+	_jump_timer = 0.0
+	_jump_count = 0
+	_max_jump_count = randi_range(JUMP_COUNT_MIN, JUMP_COUNT_MAX)
+	## 变扁动画
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale:y", 0.5, JUMP_PREPARE_TIME * 0.5)
+		tween.tween_property(sprite, "scale:y", 0.3, JUMP_PREPARE_TIME * 0.5)
+
+
+func _process_jump_prepare(delta: float) -> void:
+	_jump_timer += delta
+	if _jump_timer >= JUMP_PREPARE_TIME:
+		_start_jump()
+
+
+func _start_jump() -> void:
+	_slime_king_state = SlimeKingState.JUMPING
+	_jump_timer = 0.0
+	_jump_count += 1
+
+	## 选择随机落点（中等距离，朝向玩家方向随机偏移）
+	if _player:
+		var to_player: Vector3 = _player.global_position - global_position
+		to_player.y = 0.0
+		var base_dir := to_player.normalized()
+		## 添加随机偏移（±45度）
+		var angle_offset := randf_range(-PI * 0.25, PI * 0.25)
+		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
+		var jump_dist := randf_range(150.0, 280.0)
+		_jump_target = global_position + jump_dir * jump_dist
+		## 限制在场地内（简单限制）
+		_jump_target.x = clampf(_jump_target.x, -500.0, 500.0)
+		_jump_target.z = clampf(_jump_target.z, -500.0, 500.0)
+	else:
+		var angle := randf_range(0.0, TAU)
+		var jump_dir := Vector3(cos(angle), 0.0, sin(angle))
+		var jump_dist := randf_range(150.0, 280.0)
+		_jump_target = global_position + jump_dir * jump_dist
+
+	_jump_start_pos = global_position
+
+	## 显示红圈预警
+	if _warning_circle:
+		_warning_circle.global_position = _jump_target + Vector3(0, 0.5, 0)
+		_warning_circle.visible = true
+
+	## 弹跳动画：恢复形状并弹起
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale:y", 1.3, 0.1)
+		tween.tween_property(sprite, "scale:y", 1.0, 0.1)
+
+
+func _process_jumping(delta: float) -> void:
+	_jump_timer += delta
+	var t := _jump_timer / JUMP_DURATION
+	if t >= 1.0:
+		## 落地
+		global_position = _jump_target
+		_land_jump()
+		return
+
+	## 抛物线运动
+	var horizontal_pos := _jump_start_pos.lerp(_jump_target, t)
+	var height := JUMP_HEIGHT * sin(t * PI)
+	global_position = Vector3(horizontal_pos.x, height, horizontal_pos.z)
+
+	## 空中旋转效果
+	if sprite:
+		sprite.rotation_degrees.x = t * 360.0
+
+
+func _land_jump() -> void:
+	_slime_king_state = SlimeKingState.JUMP_LAND
+	_jump_timer = 0.0
+	if _warning_circle:
+		_warning_circle.visible = false
+	## 落地冲击效果：变扁一下
+	if sprite:
+		sprite.rotation_degrees.x = 0.0
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale:y", 0.4, 0.1)
+		tween.tween_property(sprite, "scale:y", 1.0, 0.2)
+	## 落地时对玩家造成范围伤害（如果玩家在落点附近）
+	if _player:
+		var dist := global_position.distance_to(_player.global_position)
+		if dist < 60.0:
+			var hc := _player.get_node_or_null("HealthComponent") as HealthComponent
+			if hc and not hc.invincible:
+				hc.apply_damage(contact_damage * 1.5, self)
+
+
+func _process_jump_land(delta: float) -> void:
+	_jump_timer += delta
+	if _jump_timer >= JUMP_LAND_TIME:
+		if _jump_count < _max_jump_count:
+			## 继续下一次跳跃
+			_enter_jump_prepare()
+		else:
+			## 进入休息（安全输出窗口）
+			_enter_rest()
+
+
+## ── 休息（安全输出窗口）──
+func _enter_rest() -> void:
+	_slime_king_state = SlimeKingState.REST
+	_rest_timer = 0.0
+	_jump_cd_timer = JUMP_COOLDOWN + JUMP_REST_TIME
+
+
+func _process_rest(delta: float) -> void:
+	_rest_timer += delta
+	if _rest_timer >= JUMP_REST_TIME:
+		_slime_king_state = SlimeKingState.IDLE
+
+
+## ── 凝胶弹幕（扇形）──
+func _enter_fan_prepare() -> void:
+	_slime_king_state = SlimeKingState.FAN_BURST_PREPARE
+	_skill_timer = 0.0
+	## 鼓起动画
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector3(1.3, 1.3, 1.3), FAN_PREPARE_TIME)
+
+
+func _process_fan_prepare(delta: float) -> void:
+	_skill_timer += delta
+	if _skill_timer >= FAN_PREPARE_TIME:
+		_fire_fan_burst()
+
+
+func _fire_fan_burst() -> void:
+	_slime_king_state = SlimeKingState.FAN_BURST_FIRE
+	if sprite:
+		## 恢复形状
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector3.ONE, 0.2)
+
+	if not _player:
+		_slime_king_state = SlimeKingState.IDLE
+		_fan_cd_timer = FAN_COOLDOWN
+		return
+
+	## 计算朝向玩家的基础方向
+	var base_dir: Vector3 = (_player.global_position - global_position)
+	base_dir.y = 0.0
+	base_dir = base_dir.normalized()
+
+	## 发射8-12枚凝胶弹
+	var bullet_count := randi_range(FAN_BULLET_COUNT_MIN, FAN_BULLET_COUNT_MAX)
+	## 扇形角度：上下各30度，总共60度
+	var total_angle := deg_to_rad(FAN_ANGLE * 2.0)
+	var angle_step := total_angle / (bullet_count - 1)
+	var start_angle := -deg_to_rad(FAN_ANGLE)
+
+	for i in range(bullet_count):
+		var angle := start_angle + i * angle_step
+		var dir := base_dir.rotated(Vector3.UP, angle)
+		_spawn_gel_projectile(dir, true)
+
+	## 同时发射反方向的扇形（形成上下两个扇形区域）
+	var reverse_base := -base_dir
+	for i in range(bullet_count):
+		var angle := start_angle + i * angle_step
+		var dir := reverse_base.rotated(Vector3.UP, angle)
+		_spawn_gel_projectile(dir, true)
+
+	_fan_cd_timer = FAN_COOLDOWN
+	## 发射后立即回到IDLE
+	var timer := get_tree().create_timer(0.3)
+	timer.timeout.connect(func(): _slime_king_state = SlimeKingState.IDLE)
+
+
+## ── 全域弹幕（环形）──
+func _enter_circle_prepare() -> void:
+	_slime_king_state = SlimeKingState.CIRCLE_BURST_PREPARE
+	_skill_timer = 0.0
+	## 鼓起动画
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector3(1.2, 1.2, 1.2), CIRCLE_PREPARE_TIME)
+
+
+func _process_circle_prepare(delta: float) -> void:
+	_skill_timer += delta
+	if _skill_timer >= CIRCLE_PREPARE_TIME:
+		_fire_circle_burst()
+
+
+func _fire_circle_burst() -> void:
+	_slime_king_state = SlimeKingState.CIRCLE_BURST_FIRE
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector3.ONE, 0.2)
+
+	## 360度环形散射
+	var angle_step := TAU / CIRCLE_BULLET_COUNT
+	for i in range(CIRCLE_BULLET_COUNT):
+		var angle := i * angle_step
+		var dir := Vector3(cos(angle), 0.0, sin(angle))
+		_spawn_gel_projectile(dir, false)
+
+	_circle_cd_timer = CIRCLE_COOLDOWN
+	## 发射后立即回到IDLE
+	var timer := get_tree().create_timer(0.3)
+	timer.timeout.connect(func(): _slime_king_state = SlimeKingState.IDLE)
+
+
+## ── 发射凝胶弹 ──
+func _spawn_gel_projectile(dir: Vector3, is_fan: bool) -> void:
+	if not GEL_PROJECTILE_SCENE:
+		return
+	var proj := GEL_PROJECTILE_SCENE.instantiate() as Node3D
+	if not proj:
+		return
+
+	## 设置方向
+	if proj.has_method("set_direction"):
+		proj.set_direction(Vector2(dir.x, dir.z))
+
+	## 设置速度
+	var speed: float
+	var life_time: float
+	if is_fan:
+		## 扇形弹幕：速度不一
+		speed = randf_range(FAN_BULLET_SPEED_MIN, FAN_BULLET_SPEED_MAX)
+		life_time = randf_range(FAN_BULLET_LIFE_MIN, FAN_BULLET_LIFE_MAX)
+	else:
+		## 环形弹幕：统一速度
+		speed = CIRCLE_BULLET_SPEED
+		life_time = CIRCLE_BULLET_LIFE
+
+	if proj.has_method("set_speed"):
+		proj.set_speed(speed)
+	elif "speed" in proj:
+		proj.speed = speed
+
+	## 设置存在时间（直接修改LifeTimer）
+	if proj.has_node("LifeTimer"):
+		var life_timer: Timer = proj.get_node("LifeTimer")
+		life_timer.wait_time = life_time
+		life_timer.start(life_time)
+
+	## 设置伤害（史莱姆王子弹伤害较低）
+	if "damage" in proj:
+		proj.damage = 8.0
+
+	get_tree().current_scene.add_child(proj)
+	proj.global_position = global_position + Vector3(0, 20, 0)
+
+
+## ── 被动：吸收小史莱姆 ──
+func _on_hit_box_body_entered(body: Node3D) -> void:
+	## 先调用父类处理玩家接触
+	super._on_hit_box_body_entered(body)
+
+	## 吸收小史莱姆
+	if body.is_in_group("enemy") and body is Slime:
+		if _absorb_timer <= 0.0:
+			_absorb_slime(body)
+
+
+func _absorb_slime(slime: Slime) -> void:
+	_absorb_timer = ABSORB_COOLDOWN
+	## 恢复生命值
+	if health_comp:
+		health_comp.apply_healing(ABSORB_HEAL_AMOUNT)
+	## 播放吸收动画效果
+	if sprite:
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector3(1.2, 1.2, 1.2), 0.1)
+		tween.tween_property(sprite, "scale", Vector3.ONE, 0.2)
+	## 销毁小史莱姆
+	if slime in _spawned_slimes:
+		_spawned_slimes.erase(slime)
+	slime.queue_free()
+
+
+## ── 凝胶分裂：受击时分裂小史莱姆 ──
+func _on_damaged(amount: float, source: Node) -> void:
+	## 先调用父类处理（闪白等）
+	super._on_damaged(amount, source)
+
+	## 分裂小史莱姆
+	if _split_cd_timer <= 0.0 and randf() < SPLIT_CHANCE:
+		if _spawned_slimes.size() < SPLIT_MAX_SLIMES:
+			_split_cd_timer = 1.0  ## 1秒内不会再次分裂
+			_spawn_mini_slime()
+
+
+func _spawn_mini_slime() -> void:
+	if not SLIME_SCENE:
+		return
+	var slime := SLIME_SCENE.instantiate() as Slime
+	if not slime:
+		return
+
+	## 在史莱姆王附近随机位置生成
+	var offset := Vector3(randf_range(-40.0, 40.0), 0.0, randf_range(-40.0, 40.0))
+	slime.global_position = global_position + offset
+
+	## 设置0.5秒内无敌且不能被吸收
+	if slime.health_comp:
+		slime.health_comp.invincible = true
+
+	get_tree().current_scene.add_child(slime)
+	_spawned_slimes.append(slime)
+
+	## 0.5秒后解除无敌
+	var timer := get_tree().create_timer(SPLIT_INVINCIBLE_TIME)
+	timer.timeout.connect(func():
+		if is_instance_valid(slime) and slime.health_comp:
+			slime.health_comp.invincible = false
+	)
+
+
+## ── 死亡处理 ──
+func _on_died(_who: Node) -> void:
+	_state = State.DEAD
+	set_physics_process(false)
+
+	## 清理预警圈
+	if _warning_circle:
+		_warning_circle.queue_free()
+
+	## 清理所有分裂的小史莱姆
+	for slime in _spawned_slimes:
+		if is_instance_valid(slime):
+			slime.queue_free()
+	_spawned_slimes.clear()
+
+	## 通知游戏事件
+	var ge := get_node_or_null("/root/GameEvents")
+	if ge:
+		ge.enemy_died.emit(self)
+
+	## Boss掉落
+	if randf() < 0.5 and HEALTH_PICKUP_SCENE:
+		var pickup := HEALTH_PICKUP_SCENE.instantiate()
+		get_tree().current_scene.add_child(pickup)
+		pickup.global_position = global_position
+
+	## 死亡动画
+	if sprite:
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(sprite, "modulate:a", 0.0, 1.0)
+		tween.tween_property(sprite, "scale", Vector3(0.1, 0.1, 0.1), 1.0)
+		await tween.finished
+
+	queue_free()
