@@ -206,7 +206,7 @@ func _create_segments() -> void:
 		seg_data.hp = segment_hp
 		if seg_data.health_comp:
 			seg_data.health_comp.max_health = segment_hp
-			seg_data.health_comp.health = segment_hp
+			seg_data.health_comp.current_health = segment_hp
 			seg_data.health_comp.died.connect(_on_segment_died.bind(i))
 			seg_data.health_comp.damaged.connect(_on_segment_damaged.bind(i))
 
