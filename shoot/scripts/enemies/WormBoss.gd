@@ -14,7 +14,7 @@ signal health_changed(current: float, max_hp: float)  ## Boss血条信号
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
 @export var segment_spacing: float = 3.96    ## 部位间距（原1.32的三倍）
-@export var move_speed: float = 80.0        ## 与ZapRat相同
+@export var move_speed: float = 280.0       ## ZapRat(140)的两倍
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0
 @export var segment_hp: float = 200.0       ## 每个部位血量
@@ -81,6 +81,10 @@ func _ready() -> void:
 	await play_spawn_animation()
 	set_physics_process(true)
 
+	## 通知血条初始化显示
+	if health_comp:
+		health_changed.emit(health_comp.current_health, health_comp.max_health)
+
 
 ## ── 物理帧：移动 + 换方向 + 更新部位位置 ──
 func _physics_process(delta: float) -> void:
@@ -119,8 +123,15 @@ func _apply_movement(delta: float) -> void:
 	velocity = dir_vec * move_speed
 	move_and_slide()
 
-	## 简易撞墙检测：如果移动后速度异常（被阻挡），换方向
-	if get_slide_collision_count() > 0:
+	## 简易撞墙检测：撞到非玩家对象才换方向（不避让玩家，直接撞上去）
+	var hit_wall := false
+	for i in range(get_slide_collision_count()):
+		var col := get_slide_collision(i)
+		var collider := col.get_collider()
+		if collider and not collider.is_in_group("player"):
+			hit_wall = true
+			break
+	if hit_wall:
 		_pick_new_direction()
 		_reset_direction_timer()
 
@@ -134,18 +145,24 @@ func _record_head_position() -> void:
 
 
 func _update_segment_positions() -> void:
-	## 每个部位跟随头部位置历史中的某个偏移位置
+	## 每个部位直接跟随前一个部位，保持固定间距
 	for i in range(1, _segments.size()):
 		var seg: SegmentData = _segments[i]
 		if not seg.is_alive or not is_instance_valid(seg.node):
 			continue
 
-		## 该部位对应的历史位置索引（越后面的部位越久远）
-		var history_idx: int = mini(i * 5, _history_length - 1)
-		var target_pos: Vector3 = _position_history[history_idx]
+		var prev_seg: SegmentData = _segments[i - 1]
+		if not prev_seg.is_alive or not is_instance_valid(prev_seg.node):
+			continue
 
-		## 平滑移动到目标位置
-		seg.node.global_position = seg.node.global_position.lerp(target_pos, 0.15)
+		var target_pos: Vector3 = prev_seg.node.global_position
+		var to_prev: Vector3 = target_pos - seg.node.global_position
+		var dist: float = to_prev.length()
+
+		## 保持固定间距，直接定位（不依赖历史位置，更稳定）
+		if dist > segment_spacing:
+			var dir: Vector3 = to_prev.normalized()
+			seg.node.global_position = target_pos - dir * segment_spacing
 
 
 func _update_draw_order() -> void:
@@ -407,6 +424,10 @@ func _remove_segment(idx: int) -> void:
 	if idx < 0 or idx >= _segments.size():
 		return
 	var seg: SegmentData = _segments[idx]
+
+	## 先隐藏建模（避免queue_free延迟导致残留）
+	if seg.sprite:
+		seg.sprite.visible = false
 
 	## 断开信号（防止数组移除后信号回调使用旧索引越界）
 	if seg.health_comp:

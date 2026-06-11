@@ -4,7 +4,7 @@ extends Node3D
 
 signal room_cleared
 signal player_left_room(exit_dir: int, target_room_index: int, entry_door_name: String)
-signal boss_spawned(boss: EnemyBase)
+signal boss_spawned(boss: Node)
 signal boss_died()
 signal next_floor_hole_spawned(hole: Node3D)
 signal slime_killed(drops: Dictionary)  ## 史莱姆击杀奖励信号

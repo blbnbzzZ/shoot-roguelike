@@ -27,7 +27,7 @@ var _hole_transition_active: bool = false  ## 防止地洞转场并发
 
 ## Boss血条UI
 var ui_boss_health: ProgressBar = null
-var _current_boss: EnemyBase = null
+var _current_boss: Node = null
 
 ## 多房间系统
 var _rooms: Array[Room] = []
@@ -682,13 +682,16 @@ func _connect_room_signals(room: Room) -> void:
 			room.slime_killed.connect(_on_slime_killed)
 
 
-func _on_boss_spawned(boss: EnemyBase) -> void:
+func _on_boss_spawned(boss: Node) -> void:
 	_current_boss = boss
 	if ui_boss_health:
-		ui_boss_health.max_value = boss.health_comp.max_health
-		ui_boss_health.value = boss.health_comp.current_health
+		var hc = boss.get_node_or_null("HealthComponent")
+		if hc:
+			ui_boss_health.max_value = hc.max_health
+			ui_boss_health.value = hc.current_health
 		ui_boss_health.visible = true
-	boss.health_changed.connect(_on_boss_health_changed)
+	if boss.has_signal("health_changed"):
+		boss.health_changed.connect(_on_boss_health_changed)
 
 
 func _on_boss_health_changed(current: float, max_hp: float) -> void:
