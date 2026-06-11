@@ -126,9 +126,18 @@ func _apply_movement(delta: float) -> void:
 	velocity = dir_vec * move_speed
 	move_and_slide()
 
+	## 撞墙检测：撞到非玩家对象才换方向
+	if get_slide_collision_count() > 0:
+		for i in range(get_slide_collision_count()):
+			var col := get_slide_collision(i)
+			var collider := col.get_collider()
+			if collider and not collider.is_in_group("player"):
+				_pick_new_direction()
+				break
+
 
 func _record_head_position() -> void:
-	## 记录头部当前位置到历史
+	## 记录头部当前位置到历史（[0]=当前，[1]=上一帧...）
 	_head_position = global_position
 	for i in range(_history_length - 1, 0, -1):
 		_position_history[i] = _position_history[i - 1]
@@ -136,24 +145,29 @@ func _record_head_position() -> void:
 
 
 func _update_segment_positions() -> void:
-	## 每个部位始终与前一个部位保持固定间距（太近也修正，防止黏在一起）
+	## 部位沿头部历史路径排列，形成自然曲线（解决脱节+僵硬问题）
 	for i in range(1, _segments.size()):
 		var seg: SegmentData = _segments[i]
 		if not seg.is_alive or not is_instance_valid(seg.node):
 			continue
 
-		var prev_seg: SegmentData = _segments[i - 1]
-		if not prev_seg.is_alive or not is_instance_valid(prev_seg.node):
-			continue
+		var target_distance := float(i) * segment_spacing
+		var pos := _get_position_at_distance(target_distance)
+		seg.node.global_position = pos
 
-		var target_pos: Vector3 = prev_seg.node.global_position
-		var to_prev: Vector3 = target_pos - seg.node.global_position
-		var dist: float = to_prev.length()
 
-		## 始终保持固定间距（无论太远还是太近都修正）
-		if dist > 0.001:
-			var dir: Vector3 = to_prev.normalized()
-			seg.node.global_position = target_pos - dir * segment_spacing
+func _get_position_at_distance(distance: float) -> Vector3:
+	## 从历史中寻找距离头部当前位置为 distance 的点
+	var accumulated := 0.0
+	for i in range(_position_history.size() - 1):
+		var p1: Vector3 = _position_history[i]
+		var p2: Vector3 = _position_history[i + 1]
+		var d: float = p1.distance_to(p2)
+		if accumulated + d >= distance:
+			var t: float = (distance - accumulated) / d if d > 0.001 else 0.0
+			return p1.lerp(p2, t)
+		accumulated += d
+	return _position_history[_position_history.size() - 1]
 
 
 func _update_segment_rotations() -> void:
