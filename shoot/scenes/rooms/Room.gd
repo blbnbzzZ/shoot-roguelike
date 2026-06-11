@@ -292,6 +292,8 @@ func _reconcile_enemy_count() -> void:
 			actual_alive += 1
 		elif child is Slime and child.is_inside_tree():
 			actual_alive += 1
+		elif child is WormBoss and child.is_inside_tree():
+			actual_alive += 1
 	if actual_alive != _enemies_alive:
 		_enemies_alive = actual_alive
 	## 计数归零但尚未清理房间 → 强制开门

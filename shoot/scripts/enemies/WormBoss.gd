@@ -7,12 +7,13 @@ extends CharacterBody3D
 class_name WormBoss
 
 signal worm_died()
+signal health_changed(current: float, max_hp: float)  ## Boss血条信号
 
 ## ── 导出参数 ──
 @export var head_texture: Texture2D
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
-@export var segment_spacing: float = 0.66    ## 部位间距（缩小5倍）
+@export var segment_spacing: float = 1.32    ## 部位间距（大两倍）
 @export var move_speed: float = 80.0        ## 与ZapRat相同
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0
@@ -48,6 +49,7 @@ var _original_scene_root: Node = null       ## 场景根节点（用于添加新
 
 ## ── 碰撞引用 ──
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var health_comp: HealthComponent = $HealthComponent  ## 总血量组件（用于Boss血条）
 
 
 func _ready() -> void:
@@ -55,6 +57,12 @@ func _ready() -> void:
 	add_to_group("boss")
 	set_physics_process(false)
 	_original_scene_root = get_tree().current_scene
+
+	## 初始化总血量（部位血量之和）
+	if health_comp:
+		health_comp.max_health = segment_count * segment_hp
+		health_comp.current_health = segment_count * segment_hp
+		health_comp.invincible = true  ## 总血量不由HealthComponent自己管理
 
 	## 初始化位置历史
 	_position_history.resize(_history_length)
@@ -201,6 +209,9 @@ func _create_segments() -> void:
 				seg_data.sprite.texture = head_texture
 			else:
 				seg_data.sprite.texture = body_texture
+			## 让图片底部对齐地面（不陷进地下）
+			if seg_data.sprite.texture:
+				seg_data.sprite.offset.y = seg_data.sprite.texture.get_height() / 2.0
 
 		## 设置血量
 		seg_data.hp = segment_hp
@@ -209,6 +220,10 @@ func _create_segments() -> void:
 			seg_data.health_comp.current_health = segment_hp
 			seg_data.health_comp.died.connect(_on_segment_died.bind(i))
 			seg_data.health_comp.damaged.connect(_on_segment_damaged.bind(i))
+
+		## 连接HitBox（碰到玩家造成伤害）
+		if seg_data.hit_box:
+			seg_data.hit_box.body_entered.connect(_on_hit_box_entered.bind(i))
 
 		## 设置初始位置（沿移动方向排列）
 		var offset: Vector3 = Vector3(-i * segment_spacing, 0, 0)
@@ -228,7 +243,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	## Sprite3D
 	var sprite := Sprite3D.new()
 	sprite.name = "Sprite3D"
-	sprite.pixel_size = 0.02  ## 缩小5倍
+	sprite.pixel_size = 0.04  ## 大两倍
 	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	node.add_child(sprite)
 
@@ -237,7 +252,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	hc.name = "HealthComponent"
 	node.add_child(hc)
 
-	## HitBox
+	## HitBox（碰到玩家造成伤害）
 	var hit := Area3D.new()
 	hit.name = "HitBox"
 	hit.collision_layer = 2
@@ -245,20 +260,20 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hit_shape := CollisionShape3D.new()
 	hit_shape.name = "CollisionShape3D"
 	var box := BoxShape3D.new()
-	box.size = Vector3(4, 4, 4)  ## 缩小5倍
+	box.size = Vector3(8, 8, 8)  ## 大两倍
 	hit_shape.shape = box
 	hit.add_child(hit_shape)
 	node.add_child(hit)
 
-	## HurtBox
+	## HurtBox（被玩家子弹打到）
 	var hurt := Area3D.new()
 	hurt.name = "HurtBox"
-	hurt.collision_layer = 8
+	hurt.collision_layer = 2  ## 敌人层，让子弹能检测到
 	hurt.collision_mask = 1
 	var hurt_shape := CollisionShape3D.new()
 	hurt_shape.name = "CollisionShape3D"
 	var hurt_box := BoxShape3D.new()
-	hurt_box.size = Vector3(4, 4, 4)  ## 缩小5倍
+	hurt_box.size = Vector3(8, 8, 8)  ## 大两倍
 	hurt_shape.shape = hurt_box
 	hurt.add_child(hurt_shape)
 	node.add_child(hurt)
@@ -276,6 +291,11 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 	var seg: SegmentData = _segments[seg_index]
 	seg.is_alive = false
 
+	## 同步总血量（扣除一整段）
+	if health_comp:
+		health_comp.current_health = max(health_comp.current_health - segment_hp, 0.0)
+		health_changed.emit(health_comp.current_health, health_comp.max_health)
+
 	## 如果死的是最后一个部位，整条虫死亡
 	if seg_index == _segments.size() - 1:
 		_remove_segment(seg_index)
@@ -290,13 +310,18 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 	_split_at_index(seg_index)
 
 
-func _on_segment_damaged(_amount: float, _source: Node, seg_index: int) -> void:
+func _on_segment_damaged(amount: float, _source: Node, seg_index: int) -> void:
 	## 受击闪白效果
 	var seg: SegmentData = _segments[seg_index]
 	if seg and seg.sprite:
 		var tween := create_tween()
 		tween.tween_property(seg.sprite, "modulate", Color(2.5, 0.5, 0.5, 1.0), 0.05)
 		tween.tween_property(seg.sprite, "modulate", Color.WHITE, 0.2)
+
+	## 同步总血量
+	if health_comp:
+		health_comp.current_health = max(health_comp.current_health - amount, 0.0)
+		health_changed.emit(health_comp.current_health, health_comp.max_health)
 
 
 func _split_at_index(split_idx: int) -> void:
@@ -365,6 +390,13 @@ func _apply_segment_data(data: Array) -> void:
 	## 重新设置 parent（节点的实际 reparent 需要在外面做）
 	## 这里只接管数据引用
 
+	## 重新初始化位置历史（防止新虫子从地图外飞入）
+	if _segments.size() > 0:
+		var head_pos: Vector3 = _segments[0].node.global_position
+		_position_history.resize(_history_length)
+		for i in range(_history_length):
+			_position_history[i] = head_pos
+
 
 func _remove_segment(idx: int) -> void:
 	## 移除某部位（从场景和数组中都删除）
@@ -378,8 +410,19 @@ func _remove_segment(idx: int) -> void:
 
 func _on_whole_worm_died() -> void:
 	print("WormBoss: 整条虫死亡")
+	if health_comp:
+		health_comp.current_health = 0.0
+		health_changed.emit(0.0, health_comp.max_health)
 	worm_died.emit()
 	queue_free()
+
+
+## ── 部位HitBox碰到玩家造成伤害 ──
+func _on_hit_box_entered(body: Node3D, seg_index: int) -> void:
+	if body.is_in_group("player"):
+		var player_hc = body.get_node_or_null("HealthComponent")
+		if player_hc:
+			player_hc.apply_damage(15.0, self)
 
 
 ## ── 入场动画 ──
