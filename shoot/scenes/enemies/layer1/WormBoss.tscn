@@ -6,8 +6,8 @@
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="1_health_script"]
 
 [sub_resource type="CapsuleShape3D" id="1_boss_shape"]
-radius = 30.0
-height = 60.0
+radius = 2.0
+height = 4.0
 
 [node name="WormBoss" type="CharacterBody3D"]
 collision_layer = 2
