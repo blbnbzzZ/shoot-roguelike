@@ -53,6 +53,7 @@ var STRAWBERRY_SCENE: PackedScene = load("res://scenes/enemies/layer1/Strawberry
 var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/layer1/ZapRat.tscn")
 var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/layer1/Guruguru.tscn")
 var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/BigEyeBoss.tscn")
+var WORM_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/WormBoss.tscn")
 var SLIME_KING_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKing.tscn")
 var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 ## 第一大层第2、3小关专属：籽籽
@@ -459,16 +460,9 @@ func _get_random_enemy_scene() -> PackedScene:
 
 
 ## 根据当前大层编号返回对应Boss场景
+## 测试模式：暂时只生成虫子Boss，方便测试（其他两个Boss已禁用）
 func _get_boss_scene() -> PackedScene:
-	match layer_number:
-		1:
-			## 第一大层：史莱姆王
-			return SLIME_KING_SCENE
-		2, 3:
-			## 第二、三大层：大眼Boss（后续可替换）
-			return BIG_EYE_BOSS_SCENE
-		_:
-			return BIG_EYE_BOSS_SCENE
+	return WORM_BOSS_SCENE
 
 
 ## Boss死亡后在地洞旁边生成武器奖励（避免与地洞重叠）
