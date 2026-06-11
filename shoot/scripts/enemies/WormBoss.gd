@@ -479,6 +479,29 @@ func _apply_segment_data(data: Array) -> void:
 	## 开启物理处理（分裂虫在_ready中跳过了set_physics_process(true)）
 	set_physics_process(true)
 
+	## 重新连接所有信号到本虫子（reparent后信号还连着旧虫子，必须重连）
+	for i in range(_segments.size()):
+		var seg: SegmentData = _segments[i]
+		if not seg or not is_instance_valid(seg.node):
+			continue
+
+		## 断开旧信号（尝试断开，忽略错误）
+		if seg.health_comp:
+			seg.health_comp.died.disconnect(_on_segment_died)
+			seg.health_comp.damaged.disconnect(_on_segment_damaged)
+			seg.health_comp.died.connect(_on_segment_died.bind(i))
+			seg.health_comp.damaged.connect(_on_segment_damaged.bind(i))
+
+		if seg.hit_box:
+			seg.hit_box.body_entered.disconnect(_on_hit_box_entered)
+			seg.hit_box.body_entered.connect(_on_hit_box_entered.bind(i))
+
+		if seg.hurt_box:
+			seg.hurt_box.body_entered.disconnect(_on_hurt_box_entered)
+			seg.hurt_box.area_entered.disconnect(_on_hurt_box_entered)
+			seg.hurt_box.body_entered.connect(_on_hurt_box_entered.bind(i))
+			seg.hurt_box.area_entered.connect(_on_hurt_box_entered.bind(i))
+
 
 func _remove_segment(idx: int) -> void:
 	## 移除某部位（从场景和数组中都删除）
