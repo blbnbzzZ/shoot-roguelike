@@ -1,7 +1,7 @@
 ## 史莱姆王 — Boss 敌人
 ## 核心被动：碰撞小型史莱姆时吸收并恢复生命值
 ## 四大技能：弹跳碾压、凝胶分裂、凝胶弹幕、全域弹幕
-class_name SlimeKing
+class_name SlimeKingBoss
 extends EnemyBase
 
 ## ── 基础配置 ──

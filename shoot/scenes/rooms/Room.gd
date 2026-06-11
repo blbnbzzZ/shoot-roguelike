@@ -54,7 +54,7 @@ var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/layer1/ZapRat.tscn")
 var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/layer1/Guruguru.tscn")
 var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/BigEyeBoss.tscn")
 var WORM_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/WormBoss.tscn")
-var SLIME_KING_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKing.tscn")
+var SLIME_KING_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKing.tscn")
 var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 ## 第一大层第2、3小关专属：籽籽
 var ZIZI_SCENE: PackedScene = load("res://scenes/enemies/layer1/Zizi.tscn")
@@ -502,7 +502,7 @@ func _spawn_boss() -> void:
 	## 设置Boss血量（按大层递增）
 	## 史莱姆王（第一大层）在自身脚本中已设置1600血量，这里不覆盖
 	## WormBoss 也有自身血量设置，这里也不覆盖
-	if boss is EnemyBase and not boss is SlimeKing:
+	if boss is EnemyBase and not boss is SlimeKingBoss:
 		var boss_hp: float = 2000.0
 		match layer_number:
 			1:  boss_hp = 2000.0

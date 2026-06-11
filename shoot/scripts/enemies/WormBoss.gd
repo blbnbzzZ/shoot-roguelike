@@ -311,6 +311,10 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 
 
 func _on_segment_damaged(amount: float, _source: Node, seg_index: int) -> void:
+	## 边界检查（防止信号索引过时导致越界）
+	if seg_index < 0 or seg_index >= _segments.size():
+		return
+
 	## 受击闪白效果
 	var seg: SegmentData = _segments[seg_index]
 	if seg and seg.sprite:
@@ -403,9 +407,34 @@ func _remove_segment(idx: int) -> void:
 	if idx < 0 or idx >= _segments.size():
 		return
 	var seg: SegmentData = _segments[idx]
+
+	## 断开信号（防止数组移除后信号回调使用旧索引越界）
+	if seg.health_comp:
+		if seg.health_comp.died.is_connected(_on_segment_died):
+			seg.health_comp.died.disconnect(_on_segment_died)
+		if seg.health_comp.damaged.is_connected(_on_segment_damaged):
+			seg.health_comp.damaged.disconnect(_on_segment_damaged)
+	if seg.hit_box and seg.hit_box.body_entered.is_connected(_on_hit_box_entered):
+		seg.hit_box.body_entered.disconnect(_on_hit_box_entered)
+
 	if is_instance_valid(seg.node):
 		seg.node.queue_free()
 	_segments.remove_at(idx)
+
+	## 重新连接后续部位的信号（索引已更新，避免越界）
+	for i in range(idx, _segments.size()):
+		var s: SegmentData = _segments[i]
+		if s.health_comp:
+			if s.health_comp.died.is_connected(_on_segment_died):
+				s.health_comp.died.disconnect(_on_segment_died)
+			if s.health_comp.damaged.is_connected(_on_segment_damaged):
+				s.health_comp.damaged.disconnect(_on_segment_damaged)
+			s.health_comp.died.connect(_on_segment_died.bind(i))
+			s.health_comp.damaged.connect(_on_segment_damaged.bind(i))
+		if s.hit_box:
+			if s.hit_box.body_entered.is_connected(_on_hit_box_entered):
+				s.hit_box.body_entered.disconnect(_on_hit_box_entered)
+			s.hit_box.body_entered.connect(_on_hit_box_entered.bind(i))
 
 
 func _on_whole_worm_died() -> void:
