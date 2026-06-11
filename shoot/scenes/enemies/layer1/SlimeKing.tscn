@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://slimekingboss01"]
 
 [ext_resource type="Script" uid="uid://slimeking_script" path="res://scenes/enemies/layer1/SlimeKing.gd" id="slime_king_script"]
-[ext_resource type="Texture2D" path="res://assets/史莱姆大王.png" id="slime_king_tex"]
+[ext_resource type="Texture2D" path="res://assets/enemies/layer1/slimeking/SlimeKing.png" id="slime_king_tex"]
 [ext_resource type="Script" uid="uid://b5251b0qi2qyg" path="res://scripts/components/HealthComponent.gd" id="health_script"]
 
 [sub_resource type="CapsuleShape3D" id="capsule_shape"]
