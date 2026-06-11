@@ -218,15 +218,17 @@ func _update_draw_order() -> void:
 
 
 func _reset_direction_timer() -> void:
-	_direction_interval = randf_range(direction_change_min, direction_change_max)
+	_direction_interval = randf_range(3.0, 6.0)
 	_direction_timer = _direction_interval
 
 
 func _pick_new_direction() -> void:
-	## 随机选方向（不与上次相同）
-	var dirs := [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
-	dirs.erase(_current_direction)
-	_current_direction = dirs[randi() % dirs.size()]
+	## 强制转向：上下→左右，左右→上下
+	var current_is_vertical := (_current_direction == Direction.UP or _current_direction == Direction.DOWN)
+	if current_is_vertical:
+		_current_direction = Direction.LEFT if randf() < 0.5 else Direction.RIGHT
+	else:
+		_current_direction = Direction.UP if randf() < 0.5 else Direction.DOWN
 
 
 ## ── 创建所有部位 ──
@@ -278,9 +280,8 @@ func _create_segments() -> void:
 			seg_data.hurt_box.body_entered.connect(_on_hurt_box_entered.bind(i))
 			seg_data.hurt_box.area_entered.connect(_on_hurt_box_entered.bind(i))
 
-		## 设置初始位置（沿移动方向排列）
-		var offset: Vector3 = Vector3(-i * segment_spacing, 0, 0)
-		seg_node.global_position = global_position + offset
+		## 设置初始位置：所有部位叠在头部同一个点，入场后通过历史路径自然拉开
+		seg_node.global_position = global_position
 
 		_segments.append(seg_data)
 
@@ -360,7 +361,7 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 	## 发射十字方向红色子弹（上下左右各一发）
 	_fire_cross_burst(seg)
 
-	## 断开：分裂成两条虫
+	## 断开：分裂成两条虫dsd
 	_split_at_index(seg_index)
 
 
@@ -404,8 +405,9 @@ func _split_at_index(split_idx: int) -> void:
 	## 从本虫移除后半段（死掉的部位已删，保留 0 ~ split_idx-1）
 	_segments = _segments.slice(0, split_idx)
 
-	## 创建新虫子
+	## 创建新虫子（先设置标志再add_child，防止_ready创建完整部位）
 	var new_worm: WormBoss = load("res://scenes/enemies/layer1/WormBoss.tscn").instantiate()
+	new_worm._is_split_worm = true
 	if _original_scene_root:
 		_original_scene_root.add_child(new_worm)
 	else:
@@ -413,7 +415,6 @@ func _split_at_index(split_idx: int) -> void:
 
 	new_worm.global_position = new_segments_data[0].node.global_position
 	new_worm.name = "WormBoss_Split"
-	new_worm._is_split_worm = true
 	new_worm.head_texture = head_texture
 	new_worm.body_texture = body_texture
 	new_worm.move_speed = move_speed
@@ -567,15 +568,18 @@ func _on_hurt_box_entered(body: Node, seg_index: int) -> void:
 ## ── 入场动画 ──
 func play_spawn_animation() -> void:
 	set_physics_process(false)
-	if _segments.size() > 0 and _segments[0].sprite:
-		var spr: Sprite3D = _segments[0].sprite
-		spr.modulate.a = 0.0
-		spr.scale = Vector3(0.2, 0.2, 0.2)
-		var tween := create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(spr, "modulate:a", 1.0, 0.5)
-		tween.tween_property(spr, "scale", Vector3.ONE, 0.5)
-		await tween.finished
+
+	## 所有部位一起淡入缩放（从一个点展开）
+	var tween := create_tween()
+	tween.set_parallel(true)
+	for seg: SegmentData in _segments:
+		if seg.sprite:
+			seg.sprite.modulate.a = 0.0
+			seg.sprite.scale = Vector3(0.2, 0.2, 0.2)
+			tween.tween_property(seg.sprite, "modulate:a", 1.0, 0.5)
+			tween.tween_property(seg.sprite, "scale", Vector3.ONE, 0.5)
+	await tween.finished
+
 	set_physics_process(true)
 
 
