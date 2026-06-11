@@ -13,7 +13,7 @@ signal health_changed(current: float, max_hp: float)  ## Boss血条信号
 @export var head_texture: Texture2D
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
-@export var segment_spacing: float = 55.0   ## 部位间距（历史路径跟随，间距可以很大）
+@export var segment_spacing: float = 40.0   ## 部位间距（约20%重叠）
 @export var move_speed: float = 210.0       ## 削弱四分之一
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0
@@ -340,9 +340,9 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 	var seg: SegmentData = _segments[seg_index]
 	seg.is_alive = false
 
-	## 同步总血量（扣除一整段）
+	## 总血量已在 _on_segment_damaged 中实时同步，这里不再重复扣除
+	## 确保血条显示正确（死亡瞬间刷新）
 	if health_comp:
-		health_comp.current_health = max(health_comp.current_health - segment_hp, 0.0)
 		health_changed.emit(health_comp.current_health, health_comp.max_health)
 
 	## 如果死的是最后一个部位，整条虫死亡
@@ -495,6 +495,8 @@ func _on_whole_worm_died() -> void:
 	if health_comp:
 		health_comp.current_health = 0.0
 		health_changed.emit(0.0, health_comp.max_health)
+		## 手动触发 died 信号，让 Room.gd 的 _on_enemy_died 被调用（生成洞等）
+		health_comp.died.emit(self)
 	worm_died.emit()
 	queue_free()
 
