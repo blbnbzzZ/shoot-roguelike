@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://wormboss01"]
 
 [ext_resource type="Script" path="res://scripts/enemies/WormBoss.gd" id="1_worm_boss_script"]
-[ext_resource type="Texture2D" path="res://assets/enemies/layer1/worm/worm_head.png" id="1_worm_head_tex"]
-[ext_resource type="Texture2D" path="res://assets/enemies/layer1/worm/worm_body.png" id="1_worm_body_tex"]
+[ext_resource type="Texture2D" path="res://assets/enemies/layer1/worm/肉丸子_头部.png" id="1_worm_head_tex"]
+[ext_resource type="Texture2D" path="res://assets/enemies/layer1/worm/肉丸子_身体.png" id="1_worm_body_tex"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="1_health_script"]
 
 [sub_resource type="CapsuleShape3D" id="1_boss_shape"]

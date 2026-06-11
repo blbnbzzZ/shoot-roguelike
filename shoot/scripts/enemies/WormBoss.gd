@@ -18,6 +18,9 @@ signal worm_died()
 @export var direction_change_max: float = 5.0
 @export var segment_hp: float = 200.0       ## 每个部位血量
 
+## ── 子弹场景 ──
+const PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/EnemyProjectile.tscn")
+
 ## ── 方向枚举（只走XY轴，不斜走）──
 enum Direction { UP, DOWN, LEFT, RIGHT }
 
@@ -280,6 +283,9 @@ func _on_segment_died(who: Node, seg_index: int) -> void:
 			_on_whole_worm_died()
 		return
 
+	## 发射十字方向红色子弹（上下左右各一发）
+	_fire_cross_burst(seg)
+
 	## 断开：分裂成两条虫
 	_split_at_index(seg_index)
 
@@ -389,3 +395,30 @@ func play_spawn_animation() -> void:
 		tween.tween_property(spr, "scale", Vector3.ONE, 0.5)
 		await tween.finished
 	set_physics_process(true)
+
+
+## ── 十字弹幕：被打爆的部位向上下左右发射红色子弹 ──
+func _fire_cross_burst(seg: SegmentData) -> void:
+	if not PROJECTILE_SCENE:
+		return
+
+	var spawn_pos: Vector3 = seg.node.global_position + Vector3.UP * 2.0
+	var dirs: Array[Vector2] = [
+		Vector2(0, -1),  ## 上
+		Vector2(0, 1),   ## 下
+		Vector2(-1, 0),  ## 左
+		Vector2(1, 0),   ## 右
+	]
+
+	for dir in dirs:
+		var proj := PROJECTILE_SCENE.instantiate() as Area3D
+		if not proj:
+			continue
+
+		get_tree().current_scene.add_child(proj)
+		proj.global_position = spawn_pos
+
+		if proj.has_method("set_direction"):
+			proj.set_direction(dir)
+		if proj.has_method("set_speed"):
+			proj.set_speed(120.0)
