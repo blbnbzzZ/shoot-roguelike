@@ -13,7 +13,7 @@ signal health_changed(current: float, max_hp: float)  ## Boss血条信号
 @export var head_texture: Texture2D
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
-@export var segment_spacing: float = 1.32    ## 部位间距（大两倍）
+@export var segment_spacing: float = 3.96    ## 部位间距（原1.32的三倍）
 @export var move_speed: float = 80.0        ## 与ZapRat相同
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0
