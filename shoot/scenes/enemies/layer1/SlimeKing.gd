@@ -294,16 +294,12 @@ func _calculate_jump_target() -> void:
 	var base_dir := to_player.normalized()
 
 	if dist_to_player <= JUMP_DIST_MAX:
-		## 玩家在跳跃距离内，直接越向玩家（加少量随机偏移，避免每次都跳同一个点）
-		var angle_offset := randf_range(-PI * 0.15, PI * 0.15)
-		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
-		var jump_dist := clampf(dist_to_player + randf_range(-20.0, 20.0), JUMP_DIST_MIN, JUMP_DIST_MAX)
-		_jump_target = global_position + jump_dir * jump_dist
+		## 玩家在跳跃距离内，直接越向玩家（无偏差）
+		var jump_dist := clampf(dist_to_player, JUMP_DIST_MIN, JUMP_DIST_MAX)
+		_jump_target = global_position + base_dir * jump_dist
 	else:
-		## 玩家不在范围内，跳向面向玩家的最长距离（加随机偏移）
-		var angle_offset := randf_range(-PI * 0.25, PI * 0.25)
-		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
-		_jump_target = global_position + jump_dir * JUMP_DIST_MAX
+		## 玩家不在范围内，跳向面向玩家的最长距离
+		_jump_target = global_position + base_dir * JUMP_DIST_MAX
 
 	_jump_start_pos = global_position
 
@@ -463,9 +459,8 @@ func _fire_fan_burst() -> void:
 		_spawn_gel_projectile(dir, true)
 
 	_fan_cd_timer = FAN_COOLDOWN
-	## 发射后立即回到IDLE
-	var timer := get_tree().create_timer(0.3)
-	timer.timeout.connect(func(): _slime_king_state = SlimeKingState.IDLE)
+	## 发射后直接回到IDLE
+	_slime_king_state = SlimeKingState.IDLE
 
 
 ## ── 全域弹幕（环形）──
@@ -502,9 +497,8 @@ func _fire_circle_burst() -> void:
 		_spawn_gel_projectile(dir, false)
 
 	_circle_cd_timer = CIRCLE_COOLDOWN
-	## 发射后立即回到IDLE
-	var timer := get_tree().create_timer(0.3)
-	timer.timeout.connect(func(): _slime_king_state = SlimeKingState.IDLE)
+	## 发射后直接回到IDLE
+	_slime_king_state = SlimeKingState.IDLE
 
 
 ## ── 发射凝胶弹 ──
