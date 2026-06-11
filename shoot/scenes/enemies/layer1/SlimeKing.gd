@@ -11,14 +11,14 @@ const STRETCH_AMOUNT: float = 0.2      ## 拉伸幅度
 
 ## ── 技能参数 ──
 ## 弹跳碾压
-const JUMP_PREPARE_TIME: float = 0.4    ## 蓄力时间（变扁）短一半
+const JUMP_PREPARE_TIME: float = 1.0    ## 蓄力时间（变扁）前摇1秒
 const JUMP_DURATION: float = 0.6        ## 跳跃持续时间
 const JUMP_HEIGHT: float = 40.0         ## 跳跃高度（与玩家跳进地洞高度一致）
-const JUMP_LAND_TIME: float = 0.3       ## 落地后硬直
-const JUMP_COOLDOWN: float = 2.0        ## 跳跃间隔
+const JUMP_LAND_TIME: float = 0.5       ## 落地后硬直 后摇0.5秒
+const JUMP_COOLDOWN: float = 1.0        ## 跳跃间隔 前摇1秒
 const JUMP_COUNT_MIN: int = 2           ## 最少连续跳跃次数
 const JUMP_COUNT_MAX: int = 3           ## 最多连续跳跃次数
-const JUMP_REST_TIME: float = 2.5       ## 连续跳跃后的休息（安全输出窗口）
+const JUMP_REST_TIME: float = 0.5       ## 连续跳跃后的休息（后摇0.5秒）
 const JUMP_DIST_MIN: float = 150.0      ## 最小跳跃距离（2.5倍）
 const JUMP_DIST_MAX: float = 350.0      ## 最大跳跃距离（2.5倍）
 
@@ -31,17 +31,17 @@ const SPLIT_INVINCIBLE_TIME: float = 0.5 ## 新分裂史莱姆的无敌时间
 const FAN_BULLET_COUNT_MIN: int = 8     ## 最少子弹数
 const FAN_BULLET_COUNT_MAX: int = 12    ## 最多子弹数
 const FAN_ANGLE: float = 30.0           ## 上下各30度扇形
-const FAN_PREPARE_TIME: float = 0.3     ## 蓄力时间（鼓起）短一半
-const FAN_COOLDOWN: float = 4.0         ## 冷却时间
-const FAN_BULLET_SPEED_MIN: float = 80.0  ## 子弹最慢速度 加快一倍
-const FAN_BULLET_SPEED_MAX: float = 200.0 ## 子弹最快速度 加快一倍
+const FAN_PREPARE_TIME: float = 1.0     ## 蓄力时间（鼓起）前摇1秒
+const FAN_COOLDOWN: float = 1.0         ## 冷却时间 前摇1秒
+const FAN_BULLET_SPEED_MIN: float = 160.0  ## 子弹最慢速度 再快一倍
+const FAN_BULLET_SPEED_MAX: float = 400.0 ## 子弹最快速度 再快一倍
 const FAN_BULLET_LIFE_MIN: float = 4.0  ## 子弹最短存在时间
 const FAN_BULLET_LIFE_MAX: float = 6.0  ## 子弹最长存在时间
 
 ## 全域弹幕（环形）
 const CIRCLE_BULLET_COUNT: int = 16     ## 环形子弹数
-const CIRCLE_PREPARE_TIME: float = 0.25  ## 蓄力时间 短一半
-const CIRCLE_COOLDOWN: float = 5.0      ## 冷却时间
+const CIRCLE_PREPARE_TIME: float = 1.0  ## 蓄力时间 前摇1秒
+const CIRCLE_COOLDOWN: float = 1.0      ## 冷却时间 前摇1秒
 const CIRCLE_BULLET_SPEED: float = 80.0 ## 环形子弹速度
 const CIRCLE_BULLET_LIFE: float = 5.0   ## 环形子弹存在时间
 
