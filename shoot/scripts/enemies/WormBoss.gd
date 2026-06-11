@@ -443,6 +443,11 @@ func _split_at_index(split_idx: int) -> void:
 	new_worm._reset_direction_timer()
 	new_worm.set_physics_process(true)
 
+	## 10. 如果本虫没有部位了（头部死亡），移除本虫
+	if _segments.size() == 0:
+		print("WormBoss: 头部死亡，原虫移除")
+		queue_free()
+
 
 func _apply_segment_data(data: Array) -> void:
 	## 供分裂时新虫子使用，直接接收部位数据
