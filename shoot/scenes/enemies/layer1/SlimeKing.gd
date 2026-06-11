@@ -13,12 +13,14 @@ const STRETCH_AMOUNT: float = 0.2      ## 拉伸幅度
 ## 弹跳碾压
 const JUMP_PREPARE_TIME: float = 0.8    ## 蓄力时间（变扁）
 const JUMP_DURATION: float = 0.6        ## 跳跃持续时间
-const JUMP_HEIGHT: float = 120.0        ## 跳跃高度
+const JUMP_HEIGHT: float = 40.0         ## 跳跃高度（与玩家跳进地洞高度一致）
 const JUMP_LAND_TIME: float = 0.3       ## 落地后硬直
 const JUMP_COOLDOWN: float = 2.0        ## 跳跃间隔
 const JUMP_COUNT_MIN: int = 2           ## 最少连续跳跃次数
 const JUMP_COUNT_MAX: int = 3           ## 最多连续跳跃次数
 const JUMP_REST_TIME: float = 2.5       ## 连续跳跃后的休息（安全输出窗口）
+const JUMP_DIST_MIN: float = 150.0      ## 最小跳跃距离（2.5倍）
+const JUMP_DIST_MAX: float = 350.0      ## 最大跳跃距离（2.5倍）
 
 ## 凝胶分裂
 const SPLIT_CHANCE: float = 0.35        ## 受击分裂概率
@@ -59,6 +61,10 @@ var _skill_timer: float = 0.0
 var _rest_timer: float = 0.0
 var _absorb_timer: float = 0.0
 var _spawned_slimes: Array[Node] = []   ## 已分裂的小史莱姆
+
+## 攻击方式轮换：同一种最多连续2次
+var _last_skill_used: int = -1          ## 上一次使用的技能（0=跳跃,1=扇形,2=环形）
+var _same_skill_count: int = 0          ## 同一种技能连续使用次数
 
 ## 凝胶弹场景（使用敌人子弹场景，但修改外观和参数）
 const GEL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/EnemyProjectile.tscn")
@@ -128,7 +134,11 @@ func _create_warning_circle() -> void:
 	_warning_circle.material_override = mat
 	_warning_circle.visible = false
 	_warning_circle.position.y = 0.5
-	add_child(_warning_circle)
+	## 红圈作为独立UI添加到场景根节点，不跟随史莱姆王
+	if get_tree() and get_tree().current_scene:
+		get_tree().current_scene.add_child(_warning_circle)
+	else:
+		add_child(_warning_circle)
 
 
 func _physics_process(delta: float) -> void:
@@ -153,31 +163,42 @@ func _physics_process(delta: float) -> void:
 	## 状态机处理
 	match _slime_king_state:
 		SlimeKingState.IDLE:
-			_process_idle_state(delta)
+				_process_idle_state(delta)
 		SlimeKingState.JUMP_PREPARE:
-			_process_jump_prepare(delta)
+				_process_jump_prepare(delta)
 		SlimeKingState.JUMPING:
-			_process_jumping(delta)
+				_process_jumping(delta)
 		SlimeKingState.JUMP_LAND:
-			_process_jump_land(delta)
+				_process_jump_land(delta)
 		SlimeKingState.FAN_BURST_PREPARE:
-			_process_fan_prepare(delta)
+				_process_fan_prepare(delta)
 		SlimeKingState.FAN_BURST_FIRE:
-			_process_fan_fire()
+				_process_fan_fire()
 		SlimeKingState.CIRCLE_BURST_PREPARE:
-			_process_circle_prepare(delta)
+				_process_circle_prepare(delta)
 		SlimeKingState.CIRCLE_BURST_FIRE:
-			_process_circle_fire()
+				_process_circle_fire()
 		SlimeKingState.REST:
-			_process_rest(delta)
+				_process_rest(delta)
 
-	## Boss基础攻击（继承的扇形+单发）通过覆盖禁用，使用自定义技能
-	## 但保留击退和移动
-	if _knockback_velocity.length() > 0.1:
-		velocity += _knockback_velocity
-		_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, KNOCKBACK_DECAY * delta)
+	## 跳跃期间完全跳过物理引擎，避免 move_and_slide 干扰手动位置控制
+	var _is_jumping: bool = (
+		_slime_king_state == SlimeKingState.JUMP_PREPARE or
+		_slime_king_state == SlimeKingState.JUMPING or
+		_slime_king_state == SlimeKingState.JUMP_LAND
+	)
 
-	move_and_slide()
+	if not _is_jumping:
+		## 非跳跃状态：正常物理处理
+		if _knockback_velocity.length() > 0.1:
+			velocity += _knockback_velocity
+			_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, KNOCKBACK_DECAY * delta)
+		move_and_slide()
+	else:
+		## 跳跃状态：只手动应用击退视觉反馈，不调用 move_and_slide()
+		if _knockback_velocity.length() > 0.1:
+			global_position += _knockback_velocity * delta * 0.05
+			_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, KNOCKBACK_DECAY * delta)
 
 
 ## ── 状态处理 ──
@@ -187,13 +208,48 @@ func _process_idle_state(delta: float) -> void:
 		var dir: Vector3 = (_player.global_position - global_position).normalized()
 		sprite.flip_h = dir.x < 0.0
 
-	## 技能优先级：跳跃 > 扇形弹幕 > 环形弹幕
-	if _jump_cd_timer <= 0.0 and _player:
-		_enter_jump_prepare()
-	elif _fan_cd_timer <= 0.0 and _player:
-		_enter_fan_prepare()
-	elif _circle_cd_timer <= 0.0 and _player:
-		_enter_circle_prepare()
+	## 技能选择：同一种攻击最多连续2次，强制轮换
+	var available_skills: Array[int] = []
+	if _jump_cd_timer <= 0.0:
+		available_skills.append(0)
+	if _fan_cd_timer <= 0.0:
+		available_skills.append(1)
+	if _circle_cd_timer <= 0.0:
+		available_skills.append(2)
+
+	if available_skills.size() == 0 or not _player:
+		return
+
+	## 同一种技能已连续2次，强制排除
+	if _same_skill_count >= 2 and _last_skill_used in available_skills:
+		available_skills.erase(_last_skill_used)
+
+	if available_skills.size() == 0:
+		## 所有可用技能都是同一个且已连续2次，等待其他技能CD
+		return
+
+	## 优先选不同于上一次的技能
+	var chosen_skill: int = -1
+	for skill in available_skills:
+		if skill != _last_skill_used:
+			chosen_skill = skill
+			break
+	## 只有上一次技能可用（冷却中没其他技能），且连续使用次数 < 2
+	if chosen_skill == -1:
+		chosen_skill = available_skills[0]
+
+	## 记录连续使用次数
+	if chosen_skill == _last_skill_used:
+		_same_skill_count += 1
+	else:
+		_last_skill_used = chosen_skill
+		_same_skill_count = 1
+
+	## 执行技能
+	match chosen_skill:
+		0: _enter_jump_prepare()
+		1: _enter_fan_prepare()
+		2: _enter_circle_prepare()
 
 
 ## ── 弹跳碾压 ──
@@ -202,6 +258,13 @@ func _enter_jump_prepare() -> void:
 	_jump_timer = 0.0
 	_jump_count = 0
 	_max_jump_count = randi_range(JUMP_COUNT_MIN, JUMP_COUNT_MAX)
+	## 清零速度，避免 move_and_slide 干扰跳跃轨迹
+	velocity = Vector3.ZERO
+	## 提前计算落点并显示红圈（起跳动画期间就预警）
+	_calculate_jump_target()
+	if _warning_circle:
+		_warning_circle.global_position = _jump_target + Vector3(0, 0.5, 0)
+		_warning_circle.visible = true
 	## 变扁动画
 	if sprite:
 		var tween := create_tween()
@@ -215,36 +278,48 @@ func _process_jump_prepare(delta: float) -> void:
 		_start_jump()
 
 
+## 计算跳跃落点（抽取为独立函数，供准备阶段和跳跃开始共用）
+func _calculate_jump_target() -> void:
+	if not _player:
+		## 没有玩家，随机跳向最远距离
+		var angle := randf_range(0.0, TAU)
+		var jump_dir := Vector3(cos(angle), 0.0, sin(angle))
+		_jump_target = global_position + jump_dir * JUMP_DIST_MAX
+		_jump_start_pos = global_position
+		return
+
+	var to_player: Vector3 = _player.global_position - global_position
+	to_player.y = 0.0
+	var dist_to_player: float = to_player.length()
+	var base_dir := to_player.normalized()
+
+	if dist_to_player <= JUMP_DIST_MAX:
+		## 玩家在跳跃距离内，直接越向玩家（加少量随机偏移，避免每次都跳同一个点）
+		var angle_offset := randf_range(-PI * 0.15, PI * 0.15)
+		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
+		var jump_dist := clampf(dist_to_player + randf_range(-20.0, 20.0), JUMP_DIST_MIN, JUMP_DIST_MAX)
+		_jump_target = global_position + jump_dir * jump_dist
+	else:
+		## 玩家不在范围内，跳向面向玩家的最长距离（加随机偏移）
+		var angle_offset := randf_range(-PI * 0.25, PI * 0.25)
+		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
+		_jump_target = global_position + jump_dir * JUMP_DIST_MAX
+
+	_jump_start_pos = global_position
+
+
 func _start_jump() -> void:
 	_slime_king_state = SlimeKingState.JUMPING
 	_jump_timer = 0.0
 	_jump_count += 1
 
-	## 选择随机落点（中等距离，朝向玩家方向随机偏移）
-	if _player:
-		var to_player: Vector3 = _player.global_position - global_position
-		to_player.y = 0.0
-		var base_dir := to_player.normalized()
-		## 添加随机偏移（±45度）
-		var angle_offset := randf_range(-PI * 0.25, PI * 0.25)
-		var jump_dir := base_dir.rotated(Vector3.UP, angle_offset)
-		var jump_dist := randf_range(150.0, 280.0)
-		_jump_target = global_position + jump_dir * jump_dist
-		## 限制在场地内（简单限制）
-		_jump_target.x = clampf(_jump_target.x, -500.0, 500.0)
-		_jump_target.z = clampf(_jump_target.z, -500.0, 500.0)
-	else:
-		var angle := randf_range(0.0, TAU)
-		var jump_dir := Vector3(cos(angle), 0.0, sin(angle))
-		var jump_dist := randf_range(150.0, 280.0)
-		_jump_target = global_position + jump_dir * jump_dist
+	## 落点已在 _calculate_jump_target() 中计算，这里不再重复
+	## 红圈已在 _enter_jump_prepare() 中显示，这里不再重复
 
-	_jump_start_pos = global_position
-
-	## 显示红圈预警
-	if _warning_circle:
-		_warning_circle.global_position = _jump_target + Vector3(0, 0.5, 0)
-		_warning_circle.visible = true
+	## 跳跃期间禁用物理碰撞体，避免与玩家碰撞弹飞玩家
+	var body_col := get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if body_col:
+		body_col.disabled = true
 
 	## 弹跳动画：恢复形状并弹起
 	if sprite:
@@ -254,6 +329,8 @@ func _start_jump() -> void:
 
 
 func _process_jumping(delta: float) -> void:
+	## 跳跃期间禁用物理速度，完全由手动轨迹控制
+	velocity = Vector3.ZERO
 	_jump_timer += delta
 	var t := _jump_timer / JUMP_DURATION
 	if t >= 1.0:
@@ -262,10 +339,10 @@ func _process_jumping(delta: float) -> void:
 		_land_jump()
 		return
 
-	## 抛物线运动
+	## 抛物线运动（修复：y坐标应相对于起始位置，而非相对于0）
 	var horizontal_pos := _jump_start_pos.lerp(_jump_target, t)
-	var height := JUMP_HEIGHT * sin(t * PI)
-	global_position = Vector3(horizontal_pos.x, height, horizontal_pos.z)
+	var target_y := _jump_start_pos.y + JUMP_HEIGHT * sin(t * PI)
+	global_position = Vector3(horizontal_pos.x, target_y, horizontal_pos.z)
 
 	## 空中旋转效果
 	if sprite:
@@ -275,21 +352,34 @@ func _process_jumping(delta: float) -> void:
 func _land_jump() -> void:
 	_slime_king_state = SlimeKingState.JUMP_LAND
 	_jump_timer = 0.0
-	if _warning_circle:
-		_warning_circle.visible = false
+	## 红圈在最后一次跳跃落地时才隐藏（连续跳跃时保持显示）
+	if _jump_count >= _max_jump_count:
+		if _warning_circle:
+			_warning_circle.visible = false
+	## 落地时重新启用物理碰撞体
+	var body_col := get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if body_col:
+		body_col.disabled = false
 	## 落地冲击效果：变扁一下
 	if sprite:
 		sprite.rotation_degrees.x = 0.0
 		var tween := create_tween()
 		tween.tween_property(sprite, "scale:y", 0.4, 0.1)
 		tween.tween_property(sprite, "scale:y", 1.0, 0.2)
-	## 落地时对玩家造成范围伤害（如果玩家在落点附近）
+	## 落地时对玩家造成范围伤害+击退（如果玩家在落点附近）
 	if _player:
 		var dist := global_position.distance_to(_player.global_position)
 		if dist < 60.0:
 			var hc := _player.get_node_or_null("HealthComponent") as HealthComponent
 			if hc and not hc.invincible:
 				hc.apply_damage(contact_damage * 1.5, self)
+			## 给玩家一个向外的击退，避免碰撞体重叠导致卡地下
+			if _player.has_method("apply_knockback"):
+				var kb_dir: Vector3 = (_player.global_position - global_position).normalized()
+				kb_dir.y = 0.0
+				if kb_dir.is_zero_approx():
+					kb_dir = Vector3.BACK
+				_player.apply_knockback(kb_dir * 100.0)
 
 
 func _process_jump_land(delta: float) -> void:
@@ -330,6 +420,10 @@ func _process_fan_prepare(delta: float) -> void:
 	_skill_timer += delta
 	if _skill_timer >= FAN_PREPARE_TIME:
 		_fire_fan_burst()
+
+
+func _process_fan_fire() -> void:
+	pass
 
 
 func _fire_fan_burst() -> void:
@@ -388,6 +482,10 @@ func _process_circle_prepare(delta: float) -> void:
 	_skill_timer += delta
 	if _skill_timer >= CIRCLE_PREPARE_TIME:
 		_fire_circle_burst()
+
+
+func _process_circle_fire() -> void:
+	pass
 
 
 func _fire_circle_burst() -> void:
