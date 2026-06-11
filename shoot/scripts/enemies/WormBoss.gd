@@ -273,6 +273,11 @@ func _create_segments() -> void:
 		if seg_data.hit_box:
 			seg_data.hit_box.body_entered.connect(_on_hit_box_entered.bind(i))
 
+		## 连接HurtBox（被玩家子弹打到）
+		if seg_data.hurt_box:
+			seg_data.hurt_box.body_entered.connect(_on_hurt_box_entered.bind(i))
+			seg_data.hurt_box.area_entered.connect(_on_hurt_box_entered.bind(i))
+
 		## 设置初始位置（沿移动方向排列）
 		var offset: Vector3 = Vector3(-i * segment_spacing, 0, 0)
 		seg_node.global_position = global_position + offset
@@ -308,9 +313,9 @@ func _create_segment_node(_idx: int) -> Node3D:
 	hit.collision_mask = 1
 	var hit_shape := CollisionShape3D.new()
 	hit_shape.name = "CollisionShape3D"
-	var box := BoxShape3D.new()
-	box.size = Vector3(8, 8, 8)  ## 大两倍
-	hit_shape.shape = box
+	var hit_box := BoxShape3D.new()
+	hit_box.size = Vector3(75, 75, 75)  ## 匹配2048px贴图(pixel_size=0.04 → 约82单位)
+	hit_shape.shape = hit_box
 	hit.add_child(hit_shape)
 	node.add_child(hit)
 
@@ -318,11 +323,11 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hurt := Area3D.new()
 	hurt.name = "HurtBox"
 	hurt.collision_layer = 2  ## 敌人层，让子弹能检测到
-	hurt.collision_mask = 1
+	hurt.collision_mask = 8    ## 检测Layer 8（玩家子弹）
 	var hurt_shape := CollisionShape3D.new()
 	hurt_shape.name = "CollisionShape3D"
 	var hurt_box := BoxShape3D.new()
-	hurt_box.size = Vector3(8, 8, 8)  ## 大两倍
+	hurt_box.size = Vector3(75, 75, 75)  ## 匹配2048px贴图
 	hurt_shape.shape = hurt_box
 	hurt.add_child(hurt_shape)
 	node.add_child(hurt)
@@ -507,6 +512,33 @@ func _on_hit_box_entered(body: Node3D, seg_index: int) -> void:
 		var player_hc = body.get_node_or_null("HealthComponent")
 		if player_hc:
 			player_hc.apply_damage(15.0, self)
+
+
+## ── 部位HurtBox被玩家子弹打到 ──
+func _on_hurt_box_entered(body: Node, seg_index: int) -> void:
+	## body 可能是 Node3D（body_entered）或 Area3D（area_entered）
+	if body.is_in_group("player_bullet"):
+		## 获取子弹伤害值
+		var damage: float = 10.0
+		if body.has_method("get_damage"):
+			damage = body.call("get_damage")
+		elif "damage" in body:
+			damage = body.get("damage")
+
+		## 对该部位造成伤害
+		if seg_index >= 0 and seg_index < _segments.size():
+			var seg: SegmentData = _segments[seg_index]
+			if seg and seg.health_comp and seg.is_alive:
+				seg.health_comp.apply_damage(damage, body)
+				## 受击闪白
+				if seg.sprite:
+					var tween := create_tween()
+					tween.tween_property(seg.sprite, "modulate", Color(2.5, 0.5, 0.5, 1.0), 0.05)
+					tween.tween_property(seg.sprite, "modulate", Color.WHITE, 0.2)
+
+		## 销毁子弹
+		if body.has_method("queue_free"):
+			body.queue_free()
 
 
 ## ── 入场动画 ──
