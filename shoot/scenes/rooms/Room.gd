@@ -481,7 +481,7 @@ func _spawn_boss() -> void:
 	var boss_scene: PackedScene = _get_boss_scene()
 	if not boss_scene:
 		return
-	var boss = boss_scene.instantiate() as EnemyBase
+	var boss = boss_scene.instantiate()
 	if not boss:
 		return
 
@@ -499,7 +499,8 @@ func _spawn_boss() -> void:
 
 	## 设置Boss血量（按大层递增）
 	## 史莱姆王（第一大层）在自身脚本中已设置1600血量，这里不覆盖
-	if not boss is SlimeKing:
+	## WormBoss 也有自身血量设置，这里也不覆盖
+	if boss is EnemyBase and not boss is SlimeKing:
 		var boss_hp: float = 2000.0
 		match layer_number:
 			1:  boss_hp = 2000.0
@@ -508,13 +509,17 @@ func _spawn_boss() -> void:
 		if boss.health_comp:
 			boss.health_comp.max_health = boss_hp
 			boss.health_comp.current_health = boss_hp
-	if boss.health_comp:
-		boss.health_comp.invincible = false
-		boss.health_comp.died.connect(_on_enemy_died)
 
-	## 重置Boss攻击计时器（脚本中已设默认值，这里确保从满计时开始）
-	boss._boss_shoot_timer = boss.boss_shoot_interval
-	boss._boss_single_shoot_timer = boss.boss_single_shoot_interval
+	## 连接死亡信号（EnemyBase 和 WormBoss 都有 HealthComponent）
+	var health_comp = boss.get_node_or_null("HealthComponent")
+	if health_comp:
+		health_comp.invincible = false
+		health_comp.died.connect(_on_enemy_died)
+
+	## 重置Boss攻击计时器（仅 EnemyBase 类型 Boss 需要）
+	if boss is EnemyBase:
+		boss._boss_shoot_timer = boss.boss_shoot_interval
+		boss._boss_single_shoot_timer = boss.boss_single_shoot_interval
 
 	_enemies_alive = 1
 	boss_spawned.emit(boss)
