@@ -587,12 +587,17 @@ func _play_absorb_animation(slime: Slime) -> void:
 	## 禁用小史莱姆的碰撞和AI
 	slime.set_physics_process(false)
 	slime.set_process(false)
-	var slime_hit_box := slime.get_node_or_null("HitBox") as CollisionShape3D
-	var slime_body := slime.get_node_or_null("Body") as CollisionShape3D
-	if slime_hit_box:
-		slime_hit_box.disabled = true
-	if slime_body:
-		slime_body.disabled = true
+	## 清零速度，避免物理引擎残留速度导致下陷
+	slime.velocity = Vector3.ZERO
+	if "_velocity" in slime:
+		slime._velocity = Vector3.ZERO
+	## 正确禁用碰撞体（HitBox是Area3D，要获取其内部的CollisionShape3D）
+	var slime_body_col := slime.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if slime_body_col:
+		slime_body_col.disabled = true
+	var slime_hitbox_shape := slime.get_node_or_null("HitBox/CollisionShape3D") as CollisionShape3D
+	if slime_hitbox_shape:
+		slime_hitbox_shape.disabled = true
 
 	## 获取史莱姆王精灵的位置（世界坐标）
 	var target_pos: Vector3 = global_position
