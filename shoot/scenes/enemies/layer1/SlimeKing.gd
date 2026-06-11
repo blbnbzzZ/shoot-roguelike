@@ -505,7 +505,7 @@ func _fire_circle_burst() -> void:
 func _spawn_gel_projectile(dir: Vector3, is_fan: bool) -> void:
 	if not GEL_PROJECTILE_SCENE:
 		return
-	var proj := GEL_PROJECTILE_SCENE.instantiate() as Node3D
+	var proj := GEL_PROJECTILE_SCENE.instantiate() as Area3D
 	if not proj:
 		return
 
