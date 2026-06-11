@@ -11,7 +11,7 @@ const STRETCH_AMOUNT: float = 0.2      ## 拉伸幅度
 
 ## ── 技能参数 ──
 ## 弹跳碾压
-const JUMP_PREPARE_TIME: float = 0.8    ## 蓄力时间（变扁）
+const JUMP_PREPARE_TIME: float = 0.4    ## 蓄力时间（变扁）短一半
 const JUMP_DURATION: float = 0.6        ## 跳跃持续时间
 const JUMP_HEIGHT: float = 40.0         ## 跳跃高度（与玩家跳进地洞高度一致）
 const JUMP_LAND_TIME: float = 0.3       ## 落地后硬直
@@ -31,16 +31,16 @@ const SPLIT_INVINCIBLE_TIME: float = 0.5 ## 新分裂史莱姆的无敌时间
 const FAN_BULLET_COUNT_MIN: int = 8     ## 最少子弹数
 const FAN_BULLET_COUNT_MAX: int = 12    ## 最多子弹数
 const FAN_ANGLE: float = 30.0           ## 上下各30度扇形
-const FAN_PREPARE_TIME: float = 0.6     ## 蓄力时间（鼓起）
+const FAN_PREPARE_TIME: float = 0.3     ## 蓄力时间（鼓起）短一半
 const FAN_COOLDOWN: float = 4.0         ## 冷却时间
-const FAN_BULLET_SPEED_MIN: float = 40.0  ## 子弹最慢速度
-const FAN_BULLET_SPEED_MAX: float = 100.0 ## 子弹最快速度（接近玩家初始移动速度120）
+const FAN_BULLET_SPEED_MIN: float = 80.0  ## 子弹最慢速度 加快一倍
+const FAN_BULLET_SPEED_MAX: float = 200.0 ## 子弹最快速度 加快一倍
 const FAN_BULLET_LIFE_MIN: float = 4.0  ## 子弹最短存在时间
 const FAN_BULLET_LIFE_MAX: float = 6.0  ## 子弹最长存在时间
 
 ## 全域弹幕（环形）
 const CIRCLE_BULLET_COUNT: int = 16     ## 环形子弹数
-const CIRCLE_PREPARE_TIME: float = 0.5  ## 蓄力时间
+const CIRCLE_PREPARE_TIME: float = 0.25  ## 蓄力时间 短一半
 const CIRCLE_COOLDOWN: float = 5.0      ## 冷却时间
 const CIRCLE_BULLET_SPEED: float = 80.0 ## 环形子弹速度
 const CIRCLE_BULLET_LIFE: float = 5.0   ## 环形子弹存在时间
@@ -66,8 +66,9 @@ var _spawned_slimes: Array[Node] = []   ## 已分裂的小史莱姆
 var _last_skill_used: int = -1          ## 上一次使用的技能（0=跳跃,1=扇形,2=环形）
 var _same_skill_count: int = 0          ## 同一种技能连续使用次数
 
-## 凝胶弹场景（使用敌人子弹场景，但修改外观和参数）
+## 凝胶弹场景（红色普通弹供环形弹幕，黄色高速弹供扇形弹幕）
 const GEL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/EnemyProjectile.tscn")
+const FAST_GEL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/FastEnemyProjectile.tscn")
 const SLIME_SCENE: PackedScene = preload("res://scenes/enemies/layer1/Slime.tscn")
 
 enum SlimeKingState {
@@ -506,9 +507,10 @@ func _fire_circle_burst() -> void:
 
 ## ── 发射凝胶弹 ──
 func _spawn_gel_projectile(dir: Vector3, is_fan: bool) -> void:
-	if not GEL_PROJECTILE_SCENE:
+	var scene_to_use: PackedScene = FAST_GEL_PROJECTILE_SCENE if is_fan else GEL_PROJECTILE_SCENE
+	if not scene_to_use:
 		return
-	var proj := GEL_PROJECTILE_SCENE.instantiate() as Area3D
+	var proj := scene_to_use.instantiate() as Area3D
 	if not proj:
 		return
 
