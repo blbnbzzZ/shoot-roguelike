@@ -46,7 +46,6 @@ var _position_history: Array[Vector3] = []  ## 头部位置历史（用于部位
 var _history_length: int = 300              ## 位置历史长度
 var _is_split_worm: bool = false            ## 是否是分裂出来的新虫（跳过初始创建）
 var _original_scene_root: Node = null       ## 场景根节点（用于添加新分裂的虫）
-var _spawn_position: Vector3 = Vector3.ZERO  ## 出生位置（边界保护用）
 
 ## ── 碰撞引用 ──
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -58,7 +57,6 @@ func _ready() -> void:
 	add_to_group("boss")
 	set_physics_process(false)
 	_original_scene_root = get_tree().current_scene
-	_spawn_position = global_position  ## 记录出生点（边界保护）
 
 	## 初始化总血量（部位血量之和）
 	if health_comp:
@@ -112,74 +110,21 @@ func _physics_process(delta: float) -> void:
 	## 更新图层顺序（Z-index）
 	_update_draw_order()
 
-	## 边界保护：离出生点太远时强制往回走
-	_boundary_check()
-
-
-func _boundary_check() -> void:
-	if _spawn_position == Vector3.ZERO:
-		return
-	var to_spawn: Vector3 = _spawn_position - global_position
-	to_spawn.y = 0.0
-	var dist: float = to_spawn.length()
-	if dist < 55.0:
-		return
-
-	## 选最接近"回出生点"的方向
-	var dirs := [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
-	var best: int = _current_direction
-	var best_dot: float = -INF
-	for d in dirs:
-		var vec: Vector3 = _dir_to_vec(d)
-		var dot: float = vec.normalized().dot(to_spawn.normalized())
-		if dot > best_dot:
-			best_dot = dot
-			best = d
-
-	if best != _current_direction:
-		_current_direction = best
-		_reset_direction_timer()
-
-
-func _dir_to_vec(dir: int) -> Vector3:
-	match dir:
-		Direction.UP:    return Vector3(0, 0, -1)
-		Direction.DOWN:  return Vector3(0, 0, 1)
-		Direction.LEFT:  return Vector3(-1, 0, 0)
-		Direction.RIGHT: return Vector3(1, 0, 0)
-	return Vector3.ZERO
-
 
 func _apply_movement(delta: float) -> void:
-	var dir_vec: Vector3 = _dir_to_vec(_current_direction)
+	var dir_vec := Vector3.ZERO
+	match _current_direction:
+		Direction.UP:
+			dir_vec = Vector3(0, 0, -1)
+		Direction.DOWN:
+			dir_vec = Vector3(0, 0, 1)
+		Direction.LEFT:
+			dir_vec = Vector3(-1, 0, 0)
+		Direction.RIGHT:
+			dir_vec = Vector3(1, 0, 0)
+
 	velocity = dir_vec * move_speed
 	move_and_slide()
-
-	## 用射线检测前方是否有墙，有则换方向（比 get_slide_collision 更可靠）
-	if _is_wall_ahead(20.0):
-		_pick_new_direction()
-
-
-func _is_wall_ahead(dist: float) -> bool:
-	var space := get_world_3d().direct_space_state
-	var from := global_position + Vector3.UP * 1.0
-	var dir_vec: Vector3 = _dir_to_vec(_current_direction)
-	var to := from + dir_vec * dist
-	var query := PhysicsRayQueryParameters3D.create(from, to)
-	query.collide_with_bodies = true
-	query.collide_with_areas = false
-	query.collision_mask = collision_mask
-	query.exclude = [self] + _get_all_segment_nodes()
-	var result := space.intersect_ray(query)
-	return result.size() > 0
-
-
-func _get_all_segment_nodes() -> Array[Node]:
-	var arr: Array[Node] = []
-	for seg: SegmentData in _segments:
-		if is_instance_valid(seg.node):
-			arr.append(seg.node)
-	return arr
 
 
 func _record_head_position() -> void:
@@ -264,37 +209,10 @@ func _reset_direction_timer() -> void:
 
 
 func _pick_new_direction() -> void:
-	## 优先选前方没有墙的方向（解决喜欢往墙角落走的问题）
+	## 随机选方向（不与上次相同）
 	var dirs := [Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT]
-	var open_dirs: Array[int] = []
-
-	for d in dirs:
-		if d == _current_direction:
-			continue  ## 不选当前方向（避免掉头不算"换方向"）
-		if not _is_direction_blocked(d, 15.0):
-			open_dirs.append(d)
-
-	## 有敞开的路就随机选一条
-	if open_dirs.size() > 0:
-		_current_direction = open_dirs[randi() % open_dirs.size()]
-	else:
-		## 全被堵住了，随便选（总比卡死好）
-		dirs.erase(_current_direction)
-		_current_direction = dirs[randi() % dirs.size()]
-
-
-func _is_direction_blocked(dir: int, dist: float) -> bool:
-	var space := get_world_3d().direct_space_state
-	var from := global_position + Vector3.UP * 1.0
-	var dir_vec: Vector3 = _dir_to_vec(dir)
-	var to := from + dir_vec * dist
-	var query := PhysicsRayQueryParameters3D.create(from, to)
-	query.collide_with_bodies = true
-	query.collide_with_areas = false
-	query.collision_mask = collision_mask
-	query.exclude = [self] + _get_all_segment_nodes()
-	var result := space.intersect_ray(query)
-	return result.size() > 0
+	dirs.erase(_current_direction)
+	_current_direction = dirs[randi() % dirs.size()]
 
 
 ## ── 创建所有部位 ──
@@ -360,7 +278,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var sprite := Sprite3D.new()
 	sprite.name = "Sprite3D"
 	sprite.pixel_size = 0.04  ## 大两倍
-	sprite.billboard = GeometryInstance3D.BILLBOARD_DISABLED  ## 关闭billboard，由代码控制朝向
+	sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED  ## 关闭billboard，由代码控制朝向
 	sprite.rotation.x = -PI / 2.0  ## 让精灵面朝上（俯视角可见）
 	node.add_child(sprite)
 
