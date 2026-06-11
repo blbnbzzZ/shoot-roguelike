@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="1_health_script"]
 
 [sub_resource type="BoxShape3D" id="1_boss_shape"]
-size = (40, 40, 40)
+size = Vector3(70, 70, 70)
 
 [node name="WormBoss" type="CharacterBody3D"]
 collision_layer = 2
