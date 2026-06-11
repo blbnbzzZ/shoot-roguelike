@@ -448,12 +448,35 @@ func _apply_segment_data(data: Array) -> void:
 	## 重新设置 parent（节点的实际 reparent 需要在外面做）
 	## 这里只接管数据引用
 
-	## 重新初始化位置历史（防止新虫子从地图外飞入）
+	## 重新初始化位置历史（用部位实际位置构建，防止黏在一起或横着排）
 	if _segments.size() > 0:
-		var head_pos: Vector3 = _segments[0].node.global_position
+		## 收集所有部位的当前位置（头部 → 尾部）
+		var seg_positions: Array[Vector3] = []
+		for seg: SegmentData in _segments:
+			if is_instance_valid(seg.node):
+				seg_positions.append(seg.node.global_position)
+
 		_position_history.resize(_history_length)
-		for i in range(_history_length):
-			_position_history[i] = head_pos
+		if seg_positions.size() > 0:
+			## 沿部位排列方向填充历史路径（索引0=头部，索引大=尾部方向）
+			var head_pos: Vector3 = seg_positions[0]
+			var tail_pos: Vector3 = seg_positions[seg_positions.size() - 1]
+			var dir: Vector3 = head_pos - tail_pos
+			var total_dist: float = dir.length()
+			if total_dist > 0.001:
+				dir = dir.normalized()
+			else:
+				dir = Vector3(1, 0, 0)
+
+			for i in range(_history_length):
+				var t: float = clamp(float(i) * segment_spacing / max(total_dist, 0.001), 0.0, 1.0)
+				_position_history[i] = head_pos - dir * total_dist * t
+		else:
+			for i in range(_history_length):
+				_position_history[i] = Vector3.ZERO
+
+	## 开启物理处理（分裂虫在_ready中跳过了set_physics_process(true)）
+	set_physics_process(true)
 
 
 func _remove_segment(idx: int) -> void:
