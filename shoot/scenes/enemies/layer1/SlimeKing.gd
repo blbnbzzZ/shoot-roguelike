@@ -247,7 +247,11 @@ func _process_idle_state(delta: float) -> void:
 
 	## 执行技能
 	match chosen_skill:
-		0: _enter_jump_prepare()
+		0:
+			## 开始新跳跃序列，初始化计数
+			_jump_count = 0
+			_max_jump_count = randi_range(JUMP_COUNT_MIN, JUMP_COUNT_MAX)
+			_enter_jump_prepare()
 		1: _enter_fan_prepare()
 		2: _enter_circle_prepare()
 
@@ -256,8 +260,7 @@ func _process_idle_state(delta: float) -> void:
 func _enter_jump_prepare() -> void:
 	_slime_king_state = SlimeKingState.JUMP_PREPARE
 	_jump_timer = 0.0
-	_jump_count = 0
-	_max_jump_count = randi_range(JUMP_COUNT_MIN, JUMP_COUNT_MAX)
+	## 不再这里重置_jump_count和_max_jump_count，改在_process_idle_state选跳跃时初始化
 	## 清零速度，避免 move_and_slide 干扰跳跃轨迹
 	velocity = Vector3.ZERO
 	## 提前计算落点并显示红圈（起跳动画期间就预警）
