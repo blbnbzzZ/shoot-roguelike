@@ -21,6 +21,7 @@ enum AiType { MELEE, RANGED, FAST }
 @onready var shoot_timer: Timer = $ShootTimer
 
 const PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/EnemyProjectile.tscn")
+const FAST_PROJECTILE_SCENE: PackedScene = preload("res://scenes/weapons/FastEnemyProjectile.tscn")
 const HEALTH_PICKUP_SCENE: PackedScene = preload("res://scenes/items/HealthPickup.tscn")
 var BLOOD_PARTICLES: PackedScene = null  ## 血浆粒子，运行时加载（延迟引用避免循环依赖）
 
@@ -267,7 +268,7 @@ func _fire_at_player() -> void:
 
 ## Boss扇形弹幕：5发子弹，呈扇形分布
 func _fire_fan_shot() -> void:
-	if not _player or not PROJECTILE_SCENE:
+	if not _player or not FAST_PROJECTILE_SCENE:
 		return
 	var base_dir: Vector3 = (_player.global_position - global_position)
 	base_dir.y = 0.0
@@ -281,17 +282,17 @@ func _fire_fan_shot() -> void:
 		var angle := start_angle + i * angle_step
 		var rot_dir := base_dir.rotated(Vector3.UP, angle)
 		
-		var proj := PROJECTILE_SCENE.instantiate() as Node3D
+		var proj := FAST_PROJECTILE_SCENE.instantiate() as Area3D
 		if proj.has_method("set_direction"):
 			proj.set_direction(Vector2(rot_dir.x, rot_dir.z))
 		get_tree().current_scene.add_child(proj)
 		proj.global_position = global_position + Vector3(0, 1, 0)
 		
-		## Boss子弹更大一点
+		## 扇形弹幕使用高速子弹，速度更快
 		if proj.has_method("set_speed"):
-			proj.set_speed(120.0)
-		elif proj.has_method("_speed"):
-			proj._speed = 120.0
+			proj.set_speed(200.0)
+		elif "speed" in proj:
+			proj.speed = 200.0
 
 
 func _enter_state(new_state: int) -> void:
@@ -347,6 +348,8 @@ func _on_damaged(_amount: float, source: Node) -> void:
 	if BLOOD_PARTICLES and is_inside_tree():
 		var blood := BLOOD_PARTICLES.instantiate() as GPUParticles3D
 		if blood:
+			## 先加入场景树，再设置位置和朝向（避免节点不在树中的报错）
+			get_tree().current_scene.add_child(blood)
 			blood.global_position = global_position + Vector3(0, 20, 0)
 			## 粒子朝向：子弹来源的反方向（被击中后向后飞溅）
 			if source and is_instance_valid(source):
@@ -354,7 +357,6 @@ func _on_damaged(_amount: float, source: Node) -> void:
 				look_dir.y = 0.0
 				if not look_dir.is_zero_approx():
 					blood.look_at(global_position + look_dir, Vector3.UP)
-			get_tree().current_scene.add_child(blood)
 			## 粒子播完自动销毁（one_shot=true）
 			await get_tree().create_timer(1.0).timeout
 			if is_instance_valid(blood):
