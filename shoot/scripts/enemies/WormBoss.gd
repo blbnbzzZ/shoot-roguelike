@@ -388,24 +388,27 @@ func _split_at_index(split_idx: int) -> void:
 	## split_idx 部位已死，所以新虫子从头是 split_idx+1
 
 	if split_idx + 1 >= _segments.size():
-		## 后面没有部位了
 		_remove_segment(split_idx)
 		return
 
 	print("WormBoss: 在部位 ", split_idx, " 处断开，分裂成两条虫")
 
-	## 先收集后半段数据（在移除死部位之前，索引还有效）
+	## 1. 保存死部位节点引用（在切片之前！）
+	var dead_node: Node3D = _segments[split_idx].node
+
+	## 2. 收集后半段数据（split_idx+1 开始）
 	var new_segments_data: Array[SegmentData] = []
 	for i in range(split_idx + 1, _segments.size()):
 		new_segments_data.append(_segments[i])
 
-	## 移除死掉的部位（现在 split_idx 还有效）
-	_remove_segment(split_idx)
-
-	## 从本虫移除后半段（死掉的部位已删，保留 0 ~ split_idx-1）
+	## 3. 本虫保留前半段（0 ~ split_idx-1）
 	_segments = _segments.slice(0, split_idx)
 
-	## 创建新虫子（先设置标志再add_child，防止_ready创建完整部位）
+	## 4. 删除死部位节点
+	if is_instance_valid(dead_node):
+		dead_node.queue_free()
+
+	## 5. 创建新虫子（先设标志再add_child）
 	var new_worm: WormBoss = load("res://scenes/enemies/layer1/WormBoss.tscn").instantiate()
 	new_worm._is_split_worm = true
 	if _original_scene_root:
@@ -413,29 +416,29 @@ func _split_at_index(split_idx: int) -> void:
 	else:
 		get_parent().add_child(new_worm)
 
-	new_worm.global_position = new_segments_data[0].node.global_position
+	new_worm.global_position = new_segments_data[0].node.global_position if new_segments_data.size() > 0 else global_position
 	new_worm.name = "WormBoss_Split"
 	new_worm.head_texture = head_texture
 	new_worm.body_texture = body_texture
 	new_worm.move_speed = move_speed
 	new_worm.segment_spacing = segment_spacing
 
-	## 把后半段部位的节点 reparent 到新虫子（关键！）
+	## 6. 把后半段部位的节点 reparent 到新虫子
 	for seg_data in new_segments_data:
 		if is_instance_valid(seg_data.node):
 			seg_data.node.reparent(new_worm)
 
-	## 新虫子的第一个部位改为头部贴图
+	## 7. 新虫子第一个部位改为头部贴图
 	if new_segments_data.size() > 0:
 		var new_head: SegmentData = new_segments_data[0]
 		if new_head.sprite and head_texture:
 			new_head.sprite.texture = head_texture
 		new_head.is_head = true
 
-	## 应用部位数据到新虫子
+	## 8. 应用部位数据到新虫子（接管数据 + 初始化历史 + 重连信号）
 	new_worm._apply_segment_data(new_segments_data)
 
-	## 新虫子初始化
+	## 9. 新虫子初始化
 	new_worm._pick_new_direction()
 	new_worm._reset_direction_timer()
 	new_worm.set_physics_process(true)
