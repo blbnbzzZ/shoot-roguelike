@@ -12,7 +12,7 @@ signal worm_died()
 @export var head_texture: Texture2D
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
-@export var segment_spacing: float = 3.3    ## 部位间距（33px * 0.1 pixel_size）
+@export var segment_spacing: float = 0.66    ## 部位间距（缩小5倍）
 @export var move_speed: float = 80.0        ## 与ZapRat相同
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0
@@ -155,10 +155,10 @@ func _update_draw_order() -> void:
 			continue
 		if going_up:
 			## 上走：索引越大（越靠尾）越上层
-			sprite.draw_order = _segments.size() - i
+			sprite.sorting_offset = float(_segments.size() - i)
 		else:
 			## 左右下走：索引越小（越靠头）越上层
-			sprite.draw_order = _segments.size() - i
+			sprite.sorting_offset = float(_segments.size() - i)
 
 
 func _reset_direction_timer() -> void:
@@ -228,7 +228,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	## Sprite3D
 	var sprite := Sprite3D.new()
 	sprite.name = "Sprite3D"
-	sprite.pixel_size = 0.1
+	sprite.pixel_size = 0.02  ## 缩小5倍
 	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	node.add_child(sprite)
 
@@ -245,7 +245,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hit_shape := CollisionShape3D.new()
 	hit_shape.name = "CollisionShape3D"
 	var box := BoxShape3D.new()
-	box.size = Vector3(20, 20, 20)
+	box.size = Vector3(4, 4, 4)  ## 缩小5倍
 	hit_shape.shape = box
 	hit.add_child(hit_shape)
 	node.add_child(hit)
@@ -258,7 +258,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hurt_shape := CollisionShape3D.new()
 	hurt_shape.name = "CollisionShape3D"
 	var hurt_box := BoxShape3D.new()
-	hurt_box.size = Vector3(20, 20, 20)
+	hurt_box.size = Vector3(4, 4, 4)  ## 缩小5倍
 	hurt_shape.shape = hurt_box
 	hurt.add_child(hurt_shape)
 	node.add_child(hurt)
