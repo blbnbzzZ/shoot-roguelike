@@ -13,7 +13,7 @@ signal health_changed(current: float, max_hp: float)  ## Boss血条信号
 @export var head_texture: Texture2D
 @export var body_texture: Texture2D
 @export var segment_count: int = 15        ## 总部位数（1头 + 14身体）
-@export var segment_spacing: float = 37.0   ## 部位间距（每块肉仅有1/4重叠）
+@export var segment_spacing: float = 55.0   ## 部位间距（历史路径跟随，间距可以很大）
 @export var move_speed: float = 210.0       ## 削弱四分之一
 @export var direction_change_min: float = 2.0
 @export var direction_change_max: float = 5.0

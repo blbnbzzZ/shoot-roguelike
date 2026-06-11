@@ -5,9 +5,8 @@
 [ext_resource type="Texture2D" path="res://assets/enemies/layer1/worm/wormboss_身体.png" id="1_worm_body_tex"]
 [ext_resource type="Script" path="res://scripts/components/HealthComponent.gd" id="1_health_script"]
 
-[sub_resource type="CapsuleShape3D" id="1_boss_shape"]
-radius = 2.0
-height = 4.0
+[sub_resource type="BoxShape3D" id="1_boss_shape"]
+size = (40, 40, 40)
 
 [node name="WormBoss" type="CharacterBody3D"]
 collision_layer = 2
