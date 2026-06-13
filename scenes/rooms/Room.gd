@@ -174,6 +174,7 @@ func _apply_room_type() -> void:
 		RoomType.REWARD:
 			_spawn_reward_pickup()
 		_:
+			pass
 
 
 func _create_bullet_walls() -> void:
