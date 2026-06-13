@@ -196,21 +196,26 @@ func _create_bullet_walls() -> void:
 
 
 func _position_bullet_wall_at_door(door_name: String, wall: StaticBody3D) -> void:
-	var door_pos := _get_door_world_position(door_name)
-	if door_pos == Vector3.ZERO:
+	var door_node: Area3D = _door_nodes.get(door_name)
+	if not door_node or not is_instance_valid(door_node):
 		return
+	var door_pos: Vector3 = door_node.position
 	var normal := Vector3.ZERO
 	if "North" in door_name:
 		normal = Vector3.FORWARD
+		door_pos.z = 10
 	elif "South" in door_name:
 		normal = Vector3.BACK
+		door_pos.z = room_size.z - 10
 	elif "East" in door_name:
 		normal = Vector3.RIGHT
+		door_pos.x = room_size.x - 10
 	elif "West" in door_name:
 		normal = Vector3.LEFT
+		door_pos.x = 10
 	else:
 		return
-	wall.global_position = door_pos + normal * 2.0
+	wall.position = door_pos + normal * 2.0
 	if "North" in door_name or "South" in door_name:
 		wall.rotation.y = PI / 2
 	call_deferred("_enable_bullet_wall_collision", wall, door_name)
