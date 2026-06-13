@@ -399,7 +399,9 @@ func _generate_floor() -> void:
 			if tidx >= 0 and tidx < _rooms.size():
 				neighbor_type_map[door_name] = _rooms[tidx].room_type
 		if room.has_method("set_neighbor_indices"):
-			room.set_neighbor_indices(room.neighbor_indices, neighbor_type_map)
+			room.set_neighbor_indices(room.neighbor_indices)
+		if room.has_method("set_neighbor_types"):
+			room.set_neighbor_types(neighbor_type_map)
 
 	## 进入起始房间
 	_current_room_index = 0

@@ -115,7 +115,7 @@ func get_spawn_local_position() -> Vector3:
 			for key in huge_door_positions.keys():
 				if key.begins_with(entry_door_name):
 					return huge_door_positions[key]
-	var pos := ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
+	var pos: Vector3 = ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
 	if entry_direction == EntryDir.NORTH and pos.z < 120:
 		pos.z = 120
 	elif entry_direction == EntryDir.SOUTH and pos.z > room_size.z - 120:
@@ -394,7 +394,7 @@ func _get_boss_scene_for_layer() -> PackedScene:
 		if unused.is_empty():
 			_used_bosses_layer1.clear()
 			unused = available_bosses.duplicate()
-		var picked := unused[randi() % unused.size()]
+		var picked: Dictionary = unused[randi() % unused.size()]
 		_used_bosses_layer1.append(picked.name)
 		return picked.scene
 	else:
