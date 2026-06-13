@@ -202,16 +202,12 @@ func _position_bullet_wall_at_door(door_name: String, wall: StaticBody3D) -> voi
 	var normal := Vector3.ZERO
 	if "North" in door_name:
 		normal = Vector3.FORWARD
-		z = 10
 	elif "South" in door_name:
 		normal = Vector3.BACK
-		z = room_size.z - 10
 	elif "East" in door_name:
 		normal = Vector3.RIGHT
-		x = room_size.x - 10
 	elif "West" in door_name:
 		normal = Vector3.LEFT
-		x = 10
 	else:
 		return
 	wall.global_position = door_pos + normal * 2.0
@@ -281,7 +277,7 @@ func _spawn_enemies() -> void:
 		RoomType.LARGE:
 			_spawn_large_room_enemies()
 		RoomType.HUGE:
-			_spawn_huge_room_enemies():
+				_spawn_huge_room_enemies()
 		_:
 			_spawn_normal_enemies()
 	if _enemies_alive <= 0:
