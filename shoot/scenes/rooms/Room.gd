@@ -28,6 +28,8 @@ enum EntryDir { SOUTH, NORTH, EAST, WEST }
 enum RoomType { NORMAL, SAFE, REWARD, SHOP, BOSS, LARGE, HUGE }
 
 @export var room_type: int = RoomType.NORMAL
+## 房间尺寸（用于计算出生点边界）
+@export var room_size: Vector3 = Vector3(640, 1, 840)
 
 ## 出口方向转入口方向（离开北门的房间，新房间从南门进入）
 const EXIT_TO_ENTRY: Dictionary = {
