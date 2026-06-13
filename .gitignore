@@ -1,27 +1,37 @@
 # Godot 4 项目 .gitignore
 
-# Godot 4 缓存目录
+# Godot 4 导入缓存（每个人打开项目时会自动重新生成）
 .godot/
 
-# Godot 导入文件（自动生成）
-*.import
+# Mono 编译缓存（如果用 C#）
+.mono/
+data_*/
+mono_crash.*.json
 
-# 临时文件
+# 导出产物（不需要上传，每个人自己导出）
+exports/
+*.pck
+*.exe
+*.dmg
+*.x86_64
+*.aarch64
+
+# 编辑器临时文件
 *.tmp
-*.swap
-*~
+*.log
+*.import
 
 # IDE 配置
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
 
 # 系统文件
-.DS_Store
 Thumbs.db
 
-# Python (如果使用 Python 脚本)
-__pycache__/
-*.pyc
-
-# 日志文件
-*.log
+# AI 工具配置（包含隐私信息）
+.workbuddy/
