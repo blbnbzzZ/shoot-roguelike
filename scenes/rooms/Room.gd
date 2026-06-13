@@ -50,7 +50,7 @@ var ZAPRAT_SCENE: PackedScene = load("res://scenes/enemies/layer1/ZapRat.tscn")
 var GURUGURU_SCENE: PackedScene = load("res://scenes/enemies/layer1/Guruguru.tscn")
 var BIG_EYE_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/BigEyeBoss.tscn")
 var WORM_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/WormBoss.tscn")
-var SLIME_KING_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKingBoss.tscn")
+var SLIME_KING_BOSS_SCENE: PackedScene = load("res://scenes/enemies/layer1/SlimeKing.tscn")
 var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 var ZIZI_SCENE: PackedScene = load("res://scenes/enemies/layer1/Zizi.tscn")
 
@@ -66,13 +66,13 @@ var _doors_opened: bool = false
 var _player_inside: bool = false
 
 @onready var player_detector: Area3D = $PlayerDetector
-@onready var room_visuals: Node3D = $RoomVisuals
+@onready var room_visuals: Node3D = get_node_or_null("RoomVisuals")
 @onready var doors_container: Node3D = $Doors
 @onready var enemies_container: Node3D = $Enemies
-@onready var pickups_container: Node3D = $Pickups
-@onready var floor_hole: Node3D = $FloorHole
-@onready var next_floor_label: Label3D = $NextFloorLabel
-@onready var boss_health_bar_node: Node3D = $BossHealthBar
+@onready var pickups_container: Node3D = get_node_or_null("Pickups")
+@onready var floor_hole: Node3D = get_node_or_null("FloorHole")
+@onready var next_floor_label: Label3D = get_node_or_null("NextFloorLabel")
+@onready var boss_health_bar_node: Node3D = get_node_or_null("BossHealthBar")
 
 ## Normal room (640x640): N(z=10->60) S(z=630->580) E(x=630->580) W(x=10->60)
 const ENTRY_POSITIONS: Dictionary = {
@@ -494,6 +494,10 @@ func _destroy_door_blockers() -> void:
 
 
 func _spawn_reward_pickup() -> void:
+	if not pickups_container:
+		pickups_container = Node3D.new()
+		pickups_container.name = "Pickups"
+		add_child(pickups_container)
 	if pickups_container.get_child_count() > 0:
 		return
 	var pickup_type := randi() % 3
