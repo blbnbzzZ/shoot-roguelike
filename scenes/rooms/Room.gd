@@ -136,7 +136,7 @@ func get_spawn_local_position() -> Vector3:
 			if huge_door_positions.has(entry_door_name):
 				return huge_door_positions[entry_door_name]
 			## 防御性模糊匹配
-			for key in huge_door_positions.keys():
+			for key: StringName in huge_door_positions.keys():
 				if key.begins_with(entry_door_name):
 					return huge_door_positions[key]
 	## 普通房间或回退：按方向生成（向内偏移 120）
