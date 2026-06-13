@@ -17,6 +17,11 @@ var _prev_position: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
+	## 开发者模式：伤害 10 倍
+	var dm = get_node_or_null("/root/DevMode")
+	if dm and dm.has_method("damage_mult"):
+		damage *= dm.damage_mult()
+
 	_update_velocity()
 	life_timer.timeout.connect(queue_free)
 	life_timer.start(3.0)

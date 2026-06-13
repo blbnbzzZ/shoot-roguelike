@@ -55,6 +55,7 @@ var _original_scene_root: Node = null       ## 场景根节点（用于添加新
 func _ready() -> void:
 	add_to_group("enemy")
 	add_to_group("boss")
+	add_to_group("worm_boss")  ## 添加到组，方便Room查找所有虫子
 	set_physics_process(false)
 	_original_scene_root = get_tree().current_scene
 
@@ -174,26 +175,24 @@ func _update_segment_rotations() -> void:
 	if _segments.size() == 0:
 		return
 
-	## 头部：面向当前移动方向
+	## 头部：根据移动方向翻转（参考其他怪物的做法）
 	var head: SegmentData = _segments[0]
 	if head.sprite and velocity.length() > 0.01:
 		var move_dir: Vector3 = velocity.normalized()
 		move_dir.y = 0.0
 		if move_dir.length() > 0.001:
-			head.sprite.rotation.y = atan2(move_dir.x, -move_dir.z)
+			## 参考 EnemyBase：根据X方向决定翻转
+			## 修正：面向前进方向（原逻辑是反的）
+			head.sprite.flip_h = move_dir.x > 0.0
 
-	## 身体：面向前一个部位
+	## 身体：继承头部的朝向（或者根据前一个部位的方向）
 	for i in range(1, _segments.size()):
 		var seg: SegmentData = _segments[i]
 		if not seg.is_alive or not is_instance_valid(seg.node) or not seg.sprite:
 			continue
-		var prev: SegmentData = _segments[i - 1]
-		if not prev.is_alive or not is_instance_valid(prev.node):
-			continue
-		var to_prev: Vector3 = prev.node.global_position - seg.node.global_position
-		to_prev.y = 0.0
-		if to_prev.length() > 0.001:
-			seg.sprite.rotation.y = atan2(to_prev.x, -to_prev.z)
+		## 让身体部位继承头部的flip_h（保持整体朝向一致）
+		if head.sprite:
+			seg.sprite.flip_h = head.sprite.flip_h
 
 
 func _update_draw_order() -> void:
@@ -259,9 +258,10 @@ func _create_segments() -> void:
 				seg_data.sprite.texture = head_texture
 			else:
 				seg_data.sprite.texture = body_texture
-			## 让图片底部对齐地面（不陷进地下）
+			## 让图片中心对齐碰撞箱（y=30），而不是底部对齐地面
+			## offset.y = 0 表示图片中心在position.y位置
 			if seg_data.sprite.texture:
-				seg_data.sprite.offset.y = seg_data.sprite.texture.get_height() / 2.0
+				seg_data.sprite.offset.y = 0
 
 		## 设置血量
 		seg_data.hp = segment_hp
@@ -298,8 +298,9 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var sprite := Sprite3D.new()
 	sprite.name = "Sprite3D"
 	sprite.pixel_size = 0.04  ## 大两倍
-	sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED  ## 关闭billboard，由代码控制朝向
-	sprite.rotation.x = -PI / 2.0  ## 让精灵面朝上（俯视角可见）
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED  ## 开启billboard，始终面向摄像头（参考其他怪物）
+	## 让精灵图中心与碰撞箱中心对齐（参考EnemyBase：Sprite3D在y=30.67）
+	sprite.position = Vector3(0, 30.67, 0)
 	node.add_child(sprite)
 
 	## HealthComponent
@@ -315,8 +316,10 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hit_shape := CollisionShape3D.new()
 	hit_shape.name = "CollisionShape3D"
 	var hit_box := BoxShape3D.new()
-	hit_box.size = Vector3(75, 75, 75)  ## 匹配2048px贴图(pixel_size=0.04 → 约82单位)
+	hit_box.size = Vector3(70, 70, 70)  ## 匹配精灵图大小
 	hit_shape.shape = hit_box
+	## 让碰撞箱中心与精灵图中心对齐（都在y=30.67）
+	hit_shape.position = Vector3(0, 30.67, 0)
 	hit.add_child(hit_shape)
 	node.add_child(hit)
 
@@ -328,8 +331,10 @@ func _create_segment_node(_idx: int) -> Node3D:
 	var hurt_shape := CollisionShape3D.new()
 	hurt_shape.name = "CollisionShape3D"
 	var hurt_box := BoxShape3D.new()
-	hurt_box.size = Vector3(75, 75, 75)  ## 匹配2048px贴图
+	hurt_box.size = Vector3(70, 70, 70)  ## 匹配精灵图大小
 	hurt_shape.shape = hurt_box
+	## 让碰撞箱中心与精灵图中心对齐（都在y=30.67）
+	hurt_shape.position = Vector3(0, 30.67, 0)
 	hurt.add_child(hurt_shape)
 	node.add_child(hurt)
 
@@ -408,13 +413,13 @@ func _split_at_index(split_idx: int) -> void:
 	if is_instance_valid(dead_node):
 		dead_node.queue_free()
 
-	## 5. 创建新虫子（先设标志再add_child）
+	## 5. 创建新虫子（先设标志再add_child，添加到和原虫相同的容器）
 	var new_worm: WormBoss = load("res://scenes/enemies/layer1/WormBoss.tscn").instantiate()
 	new_worm._is_split_worm = true
-	if _original_scene_root:
-		_original_scene_root.add_child(new_worm)
-	else:
+	if get_parent():
 		get_parent().add_child(new_worm)
+	elif _original_scene_root:
+		_original_scene_root.add_child(new_worm)
 
 	new_worm.global_position = new_segments_data[0].node.global_position if new_segments_data.size() > 0 else global_position
 	new_worm.name = "WormBoss_Split"
@@ -443,7 +448,10 @@ func _split_at_index(split_idx: int) -> void:
 	new_worm._reset_direction_timer()
 	new_worm.set_physics_process(true)
 
-	## 10. 如果本虫没有部位了（头部死亡），移除本虫
+	## 10. 重新计算原虫子的总血量（只保留剩余部位）
+	_recalculate_total_health()
+
+	## 11. 如果本虫没有部位了（头部死亡），移除本虫
 	if _segments.size() == 0:
 		print("WormBoss: 头部死亡，原虫移除")
 		queue_free()
@@ -456,6 +464,9 @@ func _apply_segment_data(data: Array) -> void:
 		_segments.append(d)
 	## 重新设置 parent（节点的实际 reparent 需要在外面做）
 	## 这里只接管数据引用
+
+	## 重新计算总血量（根据实际接管的部位数量和剩余血量）
+	_recalculate_total_health()
 
 	## 重新初始化位置历史（用部位实际位置构建，防止黏在一起或横着排）
 	if _segments.size() > 0:
@@ -509,6 +520,22 @@ func _apply_segment_data(data: Array) -> void:
 			seg.hurt_box.area_entered.disconnect(_on_hurt_box_entered)
 			seg.hurt_box.body_entered.connect(_on_hurt_box_entered.bind(i))
 			seg.hurt_box.area_entered.connect(_on_hurt_box_entered.bind(i))
+
+
+## 重新计算总血量（分裂后调用）
+func _recalculate_total_health() -> void:
+	## 重新计算总血量 = 所有存活部位的剩余血量之和
+	if not health_comp:
+		return
+	
+	var total: float = 0.0
+	for seg: SegmentData in _segments:
+		if seg.is_alive and seg.health_comp:
+			total += seg.health_comp.current_health
+	
+	health_comp.max_health = max(total, 1.0)
+	health_comp.current_health = total
+	health_changed.emit(total, health_comp.max_health)
 
 
 func _remove_segment(idx: int) -> void:

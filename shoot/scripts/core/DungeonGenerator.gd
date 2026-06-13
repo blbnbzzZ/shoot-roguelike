@@ -136,7 +136,11 @@ func _mark_boss_room() -> void:
 	else:
 		boss_idx = distances[0].index  ## 最远
 	
-	## 3. 设置Boss房类型
+	## 3. 设置Boss房类型（先清除其他可能的Boss房标记）
+	for i in _rooms.size():
+		if _rooms[i].has("room_type") and _rooms[i]["room_type"] == Room.RoomType.BOSS:
+			_rooms[i].erase("room_type")  ## 清除之前的Boss房标记
+	
 	_rooms[boss_idx]["room_type"] = Room.RoomType.BOSS
 
 
@@ -190,18 +194,42 @@ func _connect_rooms() -> void:
 func _open_door_between(room_a: Room, room_b: Room) -> void:
 	if not room_a or not room_b:
 		return
-	## 根据相对位置确定门的方向
+	## 根据相对位置确定 room_a -> room_b 的门方向
 	var delta: Vector3 = (room_b.global_position - room_a.global_position).normalized()
-	var dir := ""
+	var dir_a := ""
 	if abs(delta.x) > abs(delta.z):
-		dir = "east" if delta.x > 0 else "west"
+		dir_a = "East" if delta.x > 0 else "West"
 	else:
-		dir = "south" if delta.z > 0 else "north"
-
-	if room_a.has_node("Doors/" + dir.capitalize()):
-		var door = room_a.get_node("Doors/" + dir.capitalize())
-		if door.has_method("open"):
-			door.open()
+		dir_a = "South" if delta.z > 0 else "North"
+	
+	## 打开 room_a 的门
+	if room_a.has_node("Doors/" + dir_a):
+		var door_a = room_a.get_node("Doors/" + dir_a)
+		if door_a.has_method("open"):
+			door_a.open()
+	
+	## 反向：确定 room_b -> room_a 的门方向
+	var dir_b := ""
+	match dir_a:
+		"North": dir_b = "South"
+		"South": dir_b = "North"
+		"East": dir_b = "West"
+		"West": dir_b = "East"
+	
+	## 打开 room_b 的门（精确匹配门名）
+	if room_b.has_node("Doors/" + dir_b):
+		var door_b = room_b.get_node("Doors/" + dir_b)
+		if door_b.has_method("open"):
+			door_b.open()
+	else:
+		## 模糊匹配：找以 dir_b 开头的门（如"NorthDoor1"）
+		var doors_node = room_b.get_node_or_null("Doors")
+		if doors_node:
+			for door in doors_node.get_children():
+				if door.name.begins_with(dir_b):
+					if door.has_method("open"):
+						door.open()
+					break
 
 
 func _get_room_node_by_id(id: int) -> Room:

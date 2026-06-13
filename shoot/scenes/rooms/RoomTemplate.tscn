@@ -6,7 +6,7 @@
 size = Vector3(640, 1, 640)
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
-albedo_color = Color(0.14509805, 0.37254903, 0.07058824, 1)
+albedo_color = Color(0.6627451, 0.6901961, 0.9372549, 1)
 
 [sub_resource type="BoxMesh" id="WallHMesh"]
 size = Vector3(280, 50, 20)

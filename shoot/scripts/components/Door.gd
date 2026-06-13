@@ -1,13 +1,13 @@
 ## 门组件 — 挂载到 Room/Doors/ 下的每个门节点
 ## 支持 open()/close() 方法，控制碰撞和可见性
 class_name Door
-extends StaticBody2D
+extends Area3D
 
 signal door_opened(door: Door)
 signal door_closed(door: Door)
 
-@onready var collision_shape: CollisionShape2D = $CollisionShape2D
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer if has_node("AnimationPlayer") else null
 
 var _is_open: bool = false
@@ -28,9 +28,9 @@ func open() -> void:
 	if collision_shape:
 		collision_shape.disabled = true
 
-	## 隐藏精灵
-	if sprite:
-		sprite.visible = false
+	## 隐藏网格
+	if mesh_instance:
+		mesh_instance.visible = false
 
 	## 播放动画（如果有）
 	if animation_player and animation_player.has_animation("open"):
@@ -48,9 +48,9 @@ func close() -> void:
 	if collision_shape:
 		collision_shape.disabled = false
 
-	## 显示精灵
-	if sprite:
-		sprite.visible = true
+	## 显示网格
+	if mesh_instance:
+		mesh_instance.visible = true
 
 	## 播放动画
 	if animation_player and animation_player.has_animation("close"):

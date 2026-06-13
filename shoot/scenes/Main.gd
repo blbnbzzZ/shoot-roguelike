@@ -131,6 +131,7 @@ func _setup_player() -> void:
 	player.health_changed.connect(_on_health_changed)
 	player.triple_shot_activated.connect(_on_player_triple_shot_activated)
 	player.smg_activated.connect(_on_player_smg_activated)
+	player.dumdum_activated.connect(_on_player_dumdum_activated)
 	## Camera3D 是 Player 子节点
 	if camera:
 		camera.rotation_degrees.x = -60.0
@@ -528,8 +529,8 @@ func _find_reward_room(boss_idx: int) -> int:
 
 func _enter_room(index: int, entry_dir: int, entry_door_name: String = "") -> void:
 	_changing_room = true
-
-	## 离开房间时隐藏Boss血条
+	
+	## 离开房间时隐藏Boss血条（Boss房会在boss生成后重新显示）
 	_hide_boss_health_bar()
 
 	## 隐藏所有房间，禁用检测
@@ -590,6 +591,7 @@ func _enter_room(index: int, entry_dir: int, entry_door_name: String = "") -> vo
 		room._cleared = false
 		room._close_doors()
 		room.activate_room()
+		print("Main: 激活房间: ", room.room_id, " 类型: ", room.room_type)
 
 	await get_tree().process_frame
 	player.global_position = room.global_position + room.get_spawn_local_position()
@@ -684,18 +686,39 @@ func _connect_room_signals(room: Room) -> void:
 
 func _on_boss_spawned(boss: Node) -> void:
 	_current_boss = boss
+	print("Main: Boss生成: ", boss.name)
 	if ui_boss_health:
 		var hc = boss.get_node_or_null("HealthComponent")
 		if hc:
 			ui_boss_health.max_value = hc.max_health
 			ui_boss_health.value = hc.current_health
+			print("Main: Boss血量: ", hc.current_health, "/", hc.max_health)
 		ui_boss_health.visible = true
+		print("Main: Boss血条已显示")
 	if boss.has_signal("health_changed"):
 		boss.health_changed.connect(_on_boss_health_changed)
 
 
 func _on_boss_health_changed(current: float, max_hp: float) -> void:
-	if ui_boss_health:
+	if not ui_boss_health:
+		return
+	
+	## 如果当前Boss是WormBoss，汇总所有虫子的总血量
+	if _current_boss and _current_boss.is_in_group("worm_boss"):
+		var worms: Array = get_tree().get_nodes_in_group("worm_boss")
+		var total_current: float = 0.0
+		var total_max: float = 0.0
+		for worm in worms:
+			if not is_instance_valid(worm):
+				continue
+			var hc: Node = worm.get("health_comp")
+			if hc:
+				total_current += hc.current_health
+				total_max += hc.max_health
+		ui_boss_health.max_value = max(total_max, 1.0)
+		ui_boss_health.value = max(total_current, 0.0)
+	else:
+		## 其他Boss（史莱姆王、大眼怪等）按常规处理
 		ui_boss_health.max_value = max_hp
 		ui_boss_health.value = current
 
@@ -749,6 +772,10 @@ func _on_player_enter_hole() -> void:
 	
 	## 转场结束，淡出黑色
 	await _play_transition(false)
+	
+	## 冻结玩家0.5秒，防止乱按立即进入门
+	if player and is_instance_valid(player):
+		player.freeze(0.5)
 	
 	_hole_transition_active = false
 
@@ -896,6 +923,13 @@ func _on_player_smg_activated() -> void:
 		return
 	var icon = BuffUI.make_smg_icon()
 	buff_ui.add_buff("smg", icon, "冲锋枪：攻速提升33%（射击间隔缩短）")
+
+
+func _on_player_dumdum_activated() -> void:
+	if not buff_ui:
+		return
+	var icon = BuffUI.make_dumdum_icon()
+	buff_ui.add_buff("dumdum", icon, "达姆弹：基础伤害提升25%")
 
 
 func _update_ui() -> void:

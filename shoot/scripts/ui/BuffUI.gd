@@ -187,3 +187,65 @@ static func make_smg_icon() -> ImageTexture:
 		img.set_pixel(47, i, border)
 
 	return ImageTexture.create_from_image(img)
+
+
+## 生成达姆弹图标（红铜色调，子弹造型）
+static func make_dumdum_icon() -> ImageTexture:
+	var img := Image.create(48, 48, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+
+	## 黄铜弹身色
+	var col := Color(0.9, 0.85, 0.6, 1.0)
+	var dark := Color(0.6, 0.55, 0.35, 1.0)
+	## 红色弹尖（达姆弹特征）
+	var tip := Color(0.9, 0.3, 0.2, 1.0)
+	var tip_dark := Color(0.6, 0.15, 0.1, 1.0)
+
+	## 弹身（纵向圆柱形）
+	for x in range(20, 28):
+		for y in range(8, 32):
+			img.set_pixel(x, y, col)
+
+	## 弹身阴影（左侧）
+	for x in range(20, 22):
+		for y in range(8, 32):
+			img.set_pixel(x, y, dark)
+
+	## 弹尖（上方半球形）
+	for t in range(360):
+		var rad := deg_to_rad(t)
+		var px := 24 + 4 * cos(rad)
+		var py := 8 + 4 * sin(rad)
+		if px >= 0 and px < 48 and py >= 0 and py < 48:
+			img.set_pixel(int(px), int(py), tip)
+
+	## 弹尖中心深色
+	for x in range(22, 26):
+		for y in range(4, 8):
+			img.set_pixel(x, y, tip_dark)
+
+	## 底部边缘（弹底）
+	for x in range(19, 29):
+		img.set_pixel(x, 32, dark)
+
+	## 伤害标示（向上箭头 + 十字）
+	var arrow := Color(1.0, 0.2, 0.2, 1.0)
+	## 箭头主体
+	for y in range(36, 44):
+		img.set_pixel(24, y, arrow)
+	## 箭头两翼
+	img.set_pixel(22, 40, arrow)
+	img.set_pixel(23, 41, arrow)
+	img.set_pixel(25, 41, arrow)
+	img.set_pixel(26, 40, arrow)
+
+	## 边框
+	var border := Color(0.7, 0.5, 0.15, 1.0)
+	for i in range(48):
+		img.set_pixel(i, 0, border)
+		img.set_pixel(i, 47, border)
+	for i in range(48):
+		img.set_pixel(0, i, border)
+		img.set_pixel(47, i, border)
+
+	return ImageTexture.create_from_image(img)

@@ -1,39 +1,34 @@
-# Godot 4+ specific ignores
-*.import
-*.md5
-*.translation
+# Godot 4 项目 .gitignore
 
-# Godot build artifacts
-*.exe
-*.dll
-*.so
-*.dylib
-*.pck
-*.zip
-.export/
+# Godot 4 导入缓存（每个人打开项目时会自动重新生成）
+.godot/
 
-# Mono-specific ignores
+# Mono 编译缓存（如果用 C#）
 .mono/
 data_*/
 mono_crash.*.json
 
-# SVG-Simplify exported file
-*.svg.import
+# 导出产物（不需要上传，每个人自己导出）
+exports/
+*.pck
+*.exe
+*.dmg
+*.x86_64
+*.aarch64
 
-# Godot 4+ C# nuget pack & user config ignores
-.nuget/
-.nuget.metadata/
-appuser.local
-appuser.localvalue
+# 编辑器临时文件
+*.tmp
+*.log
+*.import
 
-# LSP logs
-.lsp*.log
-
-# Local workspace memory (WorkBuddy)
-.workbuddy/
-
-# IDE and editor folders
+# IDE 配置
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# macOS
+.DS_Store
+
+# 系统文件
+Thumbs.db

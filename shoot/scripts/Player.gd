@@ -6,6 +6,7 @@ signal died()
 signal health_changed(current: float, max_hp: float)
 signal triple_shot_activated()
 signal smg_activated()  ## 冲锋枪攻速增益激活信号
+signal dumdum_activated()  ## 达姆弹伤害增益激活信号
 
 enum State { NORMAL, ROLLING, HURT, DEAD }
 var _state: int = State.NORMAL
@@ -59,6 +60,11 @@ var smg_enabled: bool = false
 const SMG_FIRE_RATE_MULT: float = 0.6667   ## 原始攻速的2/3
 var _base_fire_rate: float = 0.5            ## 记录原始攻速，用于计算
 
+## 达姆弹伤害增益（拾取后基础伤害+25%）
+var dumdum_enabled: bool = false
+const DUMDUM_DAMAGE_MULT: float = 1.25     ## 伤害倍率1.25
+var _base_contact_damage: float = 15.0        ## 记录原始近战伤害（用于计算）
+
 ## 摄像机惯性
 var _target_cam_height: float = 180.0
 const CAM_SMOOTH_SPEED: float = 8.0
@@ -84,6 +90,10 @@ const CAM_RECOIL_DECAY: float = 15.0              ## 后坐力衰减速度
 ## 击退
 var _knockback_velocity: Vector3 = Vector3.ZERO
 
+## 冻结（进入新房间时短暂不能移动）
+var _frozen: bool = false
+var _freeze_timer: float = 0.0
+
 ## 无敌闪烁
 var _invincible_timer: float = 0.0
 const _INVINCIBLE_DURATION: float = 2.0
@@ -100,8 +110,13 @@ func _ready() -> void:
 	roll_cd_timer.timeout.connect(func(): _can_roll = true)
 	if cam:
 		_target_cam_dist = cam.position.length()
-	## 记录原始攻速
+	## 记录原始攻速和伤害
 	_base_fire_rate = fire_rate
+	_base_contact_damage = contact_damage
+	## 注册到 DevMode（开发者模式）
+	var dm = get_node_or_null("/root/DevMode")
+	if dm and dm.has_method("register_player"):
+		dm.register_player(self)
 
 
 func _input(event: InputEvent) -> void:
@@ -181,6 +196,18 @@ func _physics_process(delta: float) -> void:
 	if _is_firing and _state != State.DEAD:
 		_try_fire()
 
+	## 冻结检查：如果玩家被冻结，不处理移动输入
+	if _frozen:
+		_freeze_timer -= delta
+		if _freeze_timer <= 0.0:
+			_frozen = false
+		## 冻结期间只处理击退和物理，不处理玩家输入
+		if _knockback_velocity.length() > 1.0:
+			velocity += _knockback_velocity
+			_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, 500.0 * delta)
+		move_and_slide()
+		return
+
 	if _knockback_velocity.length() > 1.0:
 		velocity += _knockback_velocity
 		_knockback_velocity = _knockback_velocity.move_toward(Vector3.ZERO, 500.0 * delta)
@@ -202,9 +229,16 @@ func _process_normal(delta: float) -> void:
 	_input_dir.x = Input.get_axis("ui_left", "ui_right")
 	_input_dir.z = Input.get_axis("ui_up", "ui_down")
 	_input_dir = _input_dir.normalized()
+
+	## 开发者模式：移速 10x
+	var speed_mult: float = 1.0
+	var dm = get_node_or_null("/root/DevMode")
+	if dm and dm.has_method("is_dev_mode") and dm.is_dev_mode():
+		speed_mult = 10.0
+
 	if _input_dir.length() > 0.1:
 		_facing_direction = _input_dir
-		var target_vel := _input_dir * move_speed
+		var target_vel := _input_dir * move_speed * speed_mult
 		velocity = velocity.lerp(target_vel, 1.0 - exp(-CAM_SMOOTH_SPEED * delta))
 		if _input_dir.x > 0.01:
 			sprite.flip_h = false
@@ -255,6 +289,13 @@ func enable_smg() -> void:
 		smg_enabled = true
 		fire_rate = _base_fire_rate * SMG_FIRE_RATE_MULT
 		smg_activated.emit()
+
+## 启用达姆弹伤害增益：基础伤害提升25%
+func enable_dumdum() -> void:
+	if not dumdum_enabled:
+		dumdum_enabled = true
+		contact_damage = _base_contact_damage * DUMDUM_DAMAGE_MULT
+		dumdum_activated.emit()
 
 
 func _fire(dir: Vector3) -> void:
@@ -351,6 +392,13 @@ func revive() -> void:
 
 func apply_knockback(force: Vector3) -> void:
 	_knockback_velocity = force
+
+
+## 冻结玩家指定时长（秒），冻结期间不能移动
+func freeze(duration: float) -> void:
+	_frozen = true
+	_freeze_timer = duration
+	velocity = Vector3.ZERO
 
 
 func _get_camera_arc_position(dist: float) -> Vector3:

@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://dumdum001"]
+
+[ext_resource type="Script" uid="uid://b050ej67is6rm" path="res://scripts/pickups/DumDumPickup.gd" id="dumdum_script"]
+
+[sub_resource type="StandardMaterial3D" id="bullet_body_mat"]
+albedo_color = Color(0.9, 0.85, 0.6, 1)
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.4, 0.35, 0.2, 1)
+
+[sub_resource type="CylinderMesh" id="bullet_mesh"]
+top_radius = 0.8
+bottom_radius = 0.8
+height = 6.0
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="bullet_tip_mat"]
+albedo_color = Color(1, 0.3, 0.2, 1)
+emission = Color(0.5, 0.15, 0.1, 1)
+
+[sub_resource type="SphereMesh" id="tip_mesh"]
+radius = 0.6
+height = 3.5
+is_hemisphere = true
+
+[sub_resource type="BoxShape3D" id="pickup_shape"]
+size = Vector3(8, 8, 16)
+
+[node name="DumDumPickup" type="CSGCombiner3D" unique_id=126752147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 65, 0)
+script = ExtResource("dumdum_script")
+
+[node name="BulletBody" type="MeshInstance3D" parent="." unique_id=1906480458]
+transform = Transform3D(5, 0, 0, 0, 4.038458, 2.9480262, 0, -2.9480262, 4.038458, 0, 0, 1.7687964)
+material_override = SubResource("bullet_body_mat")
+mesh = SubResource("bullet_mesh")
+
+[node name="BulletTip" type="MeshInstance3D" parent="." unique_id=1153364255]
+transform = Transform3D(5.0000005, 0, 0, 0, 3.9608095, 3.0515554, 0, -3.0515554, 3.9608095, -0.108745575, 5.7003174, -2.3927612)
+material_override = SubResource("bullet_tip_mat")
+mesh = SubResource("tip_mesh")
+
+[node name="PickupArea" type="Area3D" parent="." unique_id=1700487046]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickupArea" unique_id=1415661459]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
+shape = SubResource("pickup_shape")

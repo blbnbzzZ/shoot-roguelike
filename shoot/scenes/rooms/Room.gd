@@ -60,11 +60,21 @@ var SLIME_SCENE: PackedScene = load("res://scenes/enemies/layer1/Slime.tscn")
 var ZIZI_SCENE: PackedScene = load("res://scenes/enemies/layer1/Zizi.tscn")
 const TRIPLE_SHOT_PICKUP_SCENE: PackedScene = preload("res://scenes/pickups/TripleShotPickup.tscn")
 var SMG_PICKUP_SCENE: PackedScene = load("res://scenes/pickups/SMGPickup.tscn")
+var DUMDUM_PICKUP_SCENE: PackedScene = load("res://scenes/pickups/DumDumPickup.tscn")
 const NEXT_FLOOR_HOLE_SCENE: PackedScene = preload("res://scenes/pickups/NextFloorHole.tscn")
 
 var _enemies_alive: int = 0
 var _cleared: bool = false
 var _started: bool = false
+
+## 静态变量：记录第一大层已使用的Boss（避免重复）
+static var _used_bosses_layer1: Array = []  ## 存储已使用的Boss类型字符串
+static var _tracked_layer: int = 0  ## 记录当前追踪的大层编号
+
+## Boss血条：汇总所有虫子Boss的血量
+var _boss_health_comp: HealthComponent = null
+var _total_boss_health: float = 0.0
+var _current_boss_health: float = 0.0
 
 @onready var enemies_container: Node3D = $Enemies
 @onready var player_detector: Area3D = $PlayerDetector
@@ -95,13 +105,13 @@ func get_spawn_local_position() -> Vector3:
 	if entry_door_name != "":
 		if room_type == RoomType.LARGE:
 			var large_door_positions := {
-				## 大房(1280×640) 门实际位置 + 向内偏移 50
-				"NorthDoor1": Vector3(320, 1, 60),
-				"NorthDoor2": Vector3(960, 1, 60),
-				"SouthDoor1": Vector3(320, 1, 580),
-				"SouthDoor2": Vector3(960, 1, 580),
-				"EastDoor":   Vector3(1220, 1, 320),
-				"WestDoor":   Vector3(60, 1, 320),
+				## 大房(1280×640) 门实际位置 + 向内偏移 120（防止卡门）
+				"NorthDoor1": Vector3(320, 1, 120),
+				"NorthDoor2": Vector3(960, 1, 120),
+				"SouthDoor1": Vector3(320, 1, 520),
+				"SouthDoor2": Vector3(960, 1, 520),
+				"EastDoor":   Vector3(1160, 1, 320),
+				"WestDoor":   Vector3(120, 1, 320),
 			}
 			if large_door_positions.has(entry_door_name):
 				return large_door_positions[entry_door_name]
@@ -111,14 +121,15 @@ func get_spawn_local_position() -> Vector3:
 					return large_door_positions[key]
 		elif room_type == RoomType.HUGE:
 			var huge_door_positions := {
-				"NorthDoor1": Vector3(320, 1, 60),
-				"NorthDoor2": Vector3(960, 1, 60),
-				"SouthDoor1": Vector3(320, 1, 1220),
-				"SouthDoor2": Vector3(960, 1, 1220),
-				"EastDoor1":  Vector3(1220, 1, 320),
-				"EastDoor2":  Vector3(1220, 1, 960),
-				"WestDoor1":  Vector3(60, 1, 320),
-				"WestDoor2":  Vector3(60, 1, 960),
+				## 超大房(1280×1280) 门实际位置 + 向内偏移 120（防止卡门）
+				"NorthDoor1": Vector3(320, 1, 120),
+				"NorthDoor2": Vector3(960, 1, 120),
+				"SouthDoor1": Vector3(320, 1, 1160),
+				"SouthDoor2": Vector3(960, 1, 1160),
+				"EastDoor1":  Vector3(1160, 1, 320),
+				"EastDoor2":  Vector3(1160, 1, 960),
+				"WestDoor1":  Vector3(120, 1, 320),
+				"WestDoor2":  Vector3(120, 1, 960),
 			}
 			if huge_door_positions.has(entry_door_name):
 				return huge_door_positions[entry_door_name]
@@ -126,8 +137,18 @@ func get_spawn_local_position() -> Vector3:
 			for key in huge_door_positions.keys():
 				if key.begins_with(entry_door_name):
 					return huge_door_positions[key]
-	## 普通房间或回退：按方向生成
-	return ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
+	## 普通房间或回退：按方向生成（向内偏移 120）
+	var pos := ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
+	## 确保偏移足够大（至少 120）
+	if entry_direction == EntryDir.NORTH and pos.z < 120:
+		pos.z = 120
+	elif entry_direction == EntryDir.SOUTH and pos.z > room_size.z - 120:
+		pos.z = room_size.z - 120
+	elif entry_direction == EntryDir.EAST and pos.x > room_size.x - 120:
+		pos.x = room_size.x - 120
+	elif entry_direction == EntryDir.WEST and pos.x < 120:
+		pos.x = 120
+	return pos
 
 
 func _ready() -> void:
@@ -158,8 +179,8 @@ func _ready() -> void:
 	## 生成子弹阻挡墙（每个门口放置隐形墙，只挡子弹不挡人）
 	_spawn_bullet_barriers()
 
-	## 奖励房：生成三发子弹拾取物
-	if room_type == RoomType.REWARD and TRIPLE_SHOT_PICKUP_SCENE:
+	## 奖励房：随机生成一种奖励拾取物（三发子弹/冲锋枪/达姆弹）
+	if room_type == RoomType.REWARD:
 		_spawn_reward_pickup()
 
 
@@ -462,8 +483,46 @@ func _get_random_enemy_scene() -> PackedScene:
 
 
 ## 根据当前大层编号返回对应Boss场景
-## 测试模式：暂时只生成虫子Boss，方便测试（其他两个Boss已禁用）
+## 第一大层（前3层）：从3个Boss中随机选，不重复
 func _get_boss_scene() -> PackedScene:
+	## 检测大层变化
+	if layer_number != _tracked_layer:
+		_tracked_layer = layer_number
+		## 如果是新的第一大层，重置已使用列表
+		if layer_number == 1:
+			_used_bosses_layer1.clear()
+	
+	## 第一大层（前3层）：从3个Boss中随机选，不重复
+	if layer_number == 1:
+		var available := []
+		if not _used_bosses_layer1.has("slime"):
+			available.append(SLIME_KING_BOSS_SCENE)
+		if not _used_bosses_layer1.has("bigeye"):
+			available.append(BIG_EYE_BOSS_SCENE)
+		if not _used_bosses_layer1.has("worm"):
+			available.append(WORM_BOSS_SCENE)
+		
+		## 如果所有Boss都用过了（防御性代码，不应该发生），重置
+		if available.is_empty():
+			_used_bosses_layer1.clear()
+			available = [SLIME_KING_BOSS_SCENE, BIG_EYE_BOSS_SCENE, WORM_BOSS_SCENE]
+		
+		## 随机选一个
+		var idx: int = randi() % available.size()
+		var selected: PackedScene = available[idx]
+		
+		## 记录已使用
+		if selected == SLIME_KING_BOSS_SCENE:
+			_used_bosses_layer1.append("slime")
+		elif selected == BIG_EYE_BOSS_SCENE:
+			_used_bosses_layer1.append("bigeye")
+		else:
+			_used_bosses_layer1.append("worm")
+		
+		print("Room: 生成Boss，已使用Boss: ", _used_bosses_layer1)
+		return selected
+	
+	## 其他大层：暂时返回虫子Boss（后续可扩展为其他Boss池）
 	return WORM_BOSS_SCENE
 
 
@@ -593,8 +652,11 @@ func _create_door_blockers() -> void:
 func _destroy_door_blockers() -> void:
 	for blocker in _door_blockers:
 		if blocker and is_instance_valid(blocker):
-			## 立即将碰撞层设为0（不再阻挡任何物体），不等待 queue_free 帧末延迟
-			## 这防止玩家在 queue_free 生效前的窗口期内挤压穿透阻挡体
+			## 立即禁用所有碰撞体（不再阻挡任何物体）
+			for child in blocker.get_children():
+				if child is CollisionShape3D:
+					child.disabled = true
+			## 立即将碰撞层设为0（双重保险）
 			blocker.collision_layer = 0
 			blocker.queue_free()
 	_door_blockers.clear()
@@ -694,21 +756,47 @@ func _on_door_entered(body: Node3D, door_name: String) -> void:
 	var target_idx: int = neighbor_indices.get(door_name, -1)
 	if target_idx < 0:
 		return
+	
+	## 计算出口方向和入口门名
+	## 改进：不仅替换方向，还保持门编号（如"SouthDoor1" → "NorthDoor1"）
 	var exit_dir: int = EntryDir.SOUTH
 	var entry_door_name: String = ""
-	match door_name:
-		"NorthDoor", "NorthDoor1", "NorthDoor2":
+	
+	## 提取门名中的方向和编号
+	var direction := ""
+	var number := ""
+	if "Door1" in door_name:
+		direction = door_name.replace("Door1", "")
+		number = "1"
+	elif "Door2" in door_name:
+		direction = door_name.replace("Door2", "")
+		number = "2"
+	else:
+		direction = door_name.replace("Door", "")
+		number = ""
+	
+	## 计算反向方向
+	var reverse_direction := ""
+	match direction:
+		"North": 
 			exit_dir = EntryDir.NORTH
-			entry_door_name = door_name.replace("North", "South")
-		"SouthDoor", "SouthDoor1", "SouthDoor2":
+			reverse_direction = "South"
+		"South": 
 			exit_dir = EntryDir.SOUTH
-			entry_door_name = door_name.replace("South", "North")
-		"EastDoor", "EastDoor1", "EastDoor2":
+			reverse_direction = "North"
+		"East": 
 			exit_dir = EntryDir.EAST
-			entry_door_name = door_name.replace("East", "West")
-		"WestDoor", "WestDoor1", "WestDoor2":
+			reverse_direction = "West"
+		"West": 
 			exit_dir = EntryDir.WEST
-			entry_door_name = door_name.replace("West", "East")
+			reverse_direction = "East"
+	
+	## 构建入口门名（保持编号一致）
+	if number != "":
+		entry_door_name = reverse_direction + "Door" + number
+	else:
+		entry_door_name = reverse_direction + "Door"
+	
 	player_left_room.emit(exit_dir, target_idx, entry_door_name)
 
 func set_neighbor_indices(indices: Dictionary, types: Dictionary = {}) -> void:
@@ -745,13 +833,15 @@ func _tint_walls(color: Color) -> void:
 
 ## 在奖励房随机生成一种武器拾取物（散弹枪或冲锋枪，互斥）
 func _spawn_reward_pickup() -> void:
-	## 随机选择：0=散弹枪, 1=冲锋枪
-	var use_smg: bool = randf() < 0.5
-
-	if use_smg and SMG_PICKUP_SCENE:
-		_spawn_smg_pickup()
-	elif TRIPLE_SHOT_PICKUP_SCENE and not use_smg:
+	## 随机选择：0=散弹枪, 1=冲锋枪, 2=达姆弹
+	var roll: int = randi() % 3
+	
+	if roll == 0 and TRIPLE_SHOT_PICKUP_SCENE:
 		_spawn_shotgun_pickup()
+	elif roll == 1 and SMG_PICKUP_SCENE:
+		_spawn_smg_pickup()
+	elif roll == 2 and DUMDUM_PICKUP_SCENE:
+		_spawn_dumdum_pickup()
 
 
 ## 生成散弹枪拾取物
@@ -766,6 +856,15 @@ func _spawn_shotgun_pickup() -> void:
 ## 生成冲锋枪拾取物
 func _spawn_smg_pickup() -> void:
 	var pickup := SMG_PICKUP_SCENE.instantiate() as Node3D
+	if not pickup:
+		return
+	pickup.global_position = _get_room_center() + Vector3(0, 1, 0)
+	add_child(pickup)
+
+
+## 生成达姆弹拾取物
+func _spawn_dumdum_pickup() -> void:
+	var pickup := DUMDUM_PICKUP_SCENE.instantiate() as Node3D
 	if not pickup:
 		return
 	pickup.global_position = _get_room_center() + Vector3(0, 1, 0)
