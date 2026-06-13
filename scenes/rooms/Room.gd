@@ -263,6 +263,19 @@ func _doors_active(active: bool) -> void:
 				sprite.visible = active
 
 
+func _open_doors() -> void:
+	_doors_active(true)
+
+
+func _close_doors() -> void:
+	_doors_active(false)
+
+
+func activate_room() -> void:
+	if not _cleared:
+		_spawn_enemies()
+
+
 func _update_door_visibility() -> void:
 	for child in doors_container.get_children():
 		if child.is_in_group("door"):

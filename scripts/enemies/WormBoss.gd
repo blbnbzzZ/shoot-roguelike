@@ -342,7 +342,7 @@ func _create_segment_node(_idx: int) -> Node3D:
 
 
 ## ── 部位受伤/死亡处理 ──
-func _on_segment_died(who: Node, seg_index: int) -> void:
+func _on_segment_died(_who: Node, seg_index: int) -> void:
 	if seg_index < 0 or seg_index >= _segments.size():
 		return
 

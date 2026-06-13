@@ -203,7 +203,7 @@ func _physics_process(delta: float) -> void:
 
 
 ## ── 状态处理 ──
-func _process_idle_state(delta: float) -> void:
+func _process_idle_state(_delta: float) -> void:
 	## 面向玩家
 	if _player and sprite:
 		var dir: Vector3 = (_player.global_position - global_position).normalized()
