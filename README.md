@@ -4,19 +4,28 @@
 > 类似《元气骑士》的爽快战斗体验 · 9层地牢挑战 · 多Boss战
 
 ![Godot 4.6.3](https://img.shields.io/badge/Godot-4.6.3-blue?logo=godot-engine)
-![AI Developed](https://img.shields.io/badge/AI%20Developed-100%25-green?logo=openai)
+![AI Developed](https://img.shields.io/badge/AI%20Developed-80%25-green?logo=openai)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 ---
 
 ## 📖 项目介绍
 
-这是一个**完全由 AI (WorkBuddy + GPT) 开发**的俯视角肉鸽地牢射击游戏。项目从零开始，包括游戏设计、代码编写、Bug调试、平衡性调整等全部由 AI 完成，展示了 AI 独立开发完整游戏的潜力。
+这是一个**由 AI (WorkBuddy + GPT) 辅助开发**的俯视角肉鸽地牢射击游戏。项目从零开始，包括游戏设计、代码编写、Bug调试、平衡性调整等大部分由 AI 完成，展示了 AI 独立开发游戏的潜力。
 
 **游戏类型**: 俯视角射击 + Roguelike + 地牢探索  
 **类似作品**: 《元气骑士》、《Enter the Gungeon》  
 **开发工具**: Godot 4.6.3 Stable  
-**AI 参与度**: 100% (设计 + 代码 + 调试)
+**AI 参与度**: 80% (设计 + 代码 + 调试)
+
+---
+
+##  开发图片展示
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/2d5dd5b1-7fb6-477d-95f9-5cb0aef331cb" />
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/ba6e160c-3eb4-481a-a68d-2be7228e47d8" />
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/d2795d2f-da88-4a50-a4c7-904127838a55" />
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/ea10955a-2de7-4186-bdeb-711bdcd63b2b" />
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/fe10e6e1-36b4-4c94-a6e3-ea3682bcafd0" />
 
 ---
 
@@ -31,14 +40,13 @@
 - **流畅的射击手感**：鼠标瞄准 + WASD移动
 - **多重射击能力**：三重射击、SMG快速射击
 - **达姆弹系统**：拾取后增加25%基础伤害
-- **近战伤害**：玩家接触敌人造成反伤
 
 ### 👾 敌人系统
 - **多种敌人类型**：史莱姆、大眼、籽籽敌人等
 - **Boss战**：
   - 🟢 **史莱姆王**：扇形子弹攻击，可调整攻击前摇
   - 👁️ **大眼Boss**：2-3层专属Boss
-  - 🪱 **虫子Boss（肉丸子）**：15节身体，死亡后分裂为两条独立虫子
+  - 🪱 **虫子Boss**：15节身体，打断关节后分裂为两条独立虫子
 
 ### 🎁 奖励系统
 奖励房间提供三选一奖励：
@@ -50,16 +58,15 @@
 
 ## ✨ 项目优点
 
-### 🤖 AI 完全开发
-- **100% AI 生成代码**：从游戏设计到Bug修复，全部由 AI 完成
+### 🤖 AI 开发
+- **80% AI 生成代码**：从游戏设计到Bug修复，大部分由 AI 完成
 - **快速迭代**：AI 可以在几分钟内完成复杂功能的实现和调试
 - **可复现性**：展示 AI 开发游戏的完整流程，可供学习参考
 
 ### 🎮 游戏特色
-- **流畅的战斗体验**：经过多次调试优化，手感接近商业游戏
+- **流畅的战斗体验**：经过多次调试优化手感流畅
 - **丰富的Boss战**：每个Boss都有独特的攻击模式和阶段变化
 - **Roguelike元素**：随机房间、随机奖励，每次游玩都有新鲜感
-- **分裂机制**：虫子Boss死亡后分裂，增加战斗策略性
 
 ### 🛠️ 技术亮点
 - **组件化设计**：HealthComponent、Pickup系统等高可复用组件
@@ -72,7 +79,7 @@
 ## 🚧 缺失内容与待更新
 
 ### 🐛 已知问题
-- [ ] 部分动画过渡不够平滑
+- [ ] 部分动画还未实装
 - [ ] 虫子Boss模型高度与碰撞箱对齐需进一步优化
 - [ ] 门通路逻辑在极端情况下可能卡住
 
