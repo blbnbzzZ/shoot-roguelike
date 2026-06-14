@@ -106,7 +106,7 @@ func get_spawn_local_position() -> Vector3:
 	## 如果有具体的入口门名，优先按门名精确生成（用于大/超大房间）
 	if entry_door_name != "":
 		if room_type == RoomType.LARGE:
-			var large_door_positions := {
+			var large_door_positions: Dictionary = {
 				## 大房(1280×640) 门实际位置 + 向内偏移 120（防止卡门）
 				"NorthDoor1": Vector3(320, 1, 120),
 				"NorthDoor2": Vector3(960, 1, 120),
@@ -118,11 +118,11 @@ func get_spawn_local_position() -> Vector3:
 			if large_door_positions.has(entry_door_name):
 				return large_door_positions[entry_door_name]
 			## 防御性模糊匹配：如 "SouthDoor" 匹配 "SouthDoor1" / "SouthDoor2"
-			for key in large_door_positions.keys():
+			for key: StringName in large_door_positions.keys():
 				if key.begins_with(entry_door_name):
 					return large_door_positions[key]
 		elif room_type == RoomType.HUGE:
-			var huge_door_positions := {
+			var huge_door_positions: Dictionary = {
 				## 超大房(1280×1280) 门实际位置 + 向内偏移 120（防止卡门）
 				"NorthDoor1": Vector3(320, 1, 120),
 				"NorthDoor2": Vector3(960, 1, 120),
