@@ -65,6 +65,7 @@ func _ready() -> void:
 	detection.body_entered.connect(_on_detect_enter)
 	detection.body_exited.connect(_on_detect_exit)
 	if hit_box:
+		hit_box.collision_mask = 1  ## 显式设置：检测Layer 1（玩家）
 		hit_box.body_entered.connect(_on_hit_box_body_entered)
 		hit_box.body_exited.connect(_on_hit_box_body_exited)
 	call_deferred("_check_player_nearby")

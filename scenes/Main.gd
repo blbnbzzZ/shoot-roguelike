@@ -399,9 +399,7 @@ func _generate_floor() -> void:
 			if tidx >= 0 and tidx < _rooms.size():
 				neighbor_type_map[door_name] = _rooms[tidx].room_type
 		if room.has_method("set_neighbor_indices"):
-			room.set_neighbor_indices(room.neighbor_indices)
-		if room.has_method("set_neighbor_types"):
-			room.set_neighbor_types(neighbor_type_map)
+			room.set_neighbor_indices(room.neighbor_indices, neighbor_type_map)
 
 	## 进入起始房间
 	_current_room_index = 0
@@ -611,7 +609,7 @@ func _on_room_cleared() -> void:
 	if _game_over:
 		return
 	_cleared[_current_room_index] = true
-	ui_floor.text = "CLEARED!"
+	_update_ui()  ## 保持 Floor 文字正常显示，不再覆盖为 CLEARED!
 	_reveal_adjacent(_current_room_index)
 
 	## 检查是否是Boss房 - Boss房清空后不再自动进入下一层，等待玩家进入地洞
