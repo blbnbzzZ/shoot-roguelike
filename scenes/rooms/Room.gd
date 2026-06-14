@@ -140,7 +140,7 @@ func get_spawn_local_position() -> Vector3:
 				if key.begins_with(entry_door_name):
 					return huge_door_positions[key]
 	## 普通房间或回退：按方向生成（向内偏移 120）
-	var pos := ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
+	var pos: Vector3 = ENTRY_POSITIONS.get(entry_direction, Vector3(320, 1, 420))
 	## 确保偏移足够大（至少 120）
 	if entry_direction == EntryDir.NORTH and pos.z < 120:
 		pos.z = 120
