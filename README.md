@@ -23,7 +23,7 @@
 ##  开发图片展示
 <img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/2d5dd5b1-7fb6-477d-95f9-5cb0aef331cb" />
 <img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/ba6e160c-3eb4-481a-a68d-2be7228e47d8" />
-<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/d2795d2f-da88-4a50-a4c7-904127838a55" />
+<img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/606c07df-c2e3-43aa-8d02-4dd739685479" />
 <img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/ea10955a-2de7-4186-bdeb-711bdcd63b2b" />
 <img width="875" height="470" alt="image" src="https://github.com/user-attachments/assets/fe10e6e1-36b4-4c94-a6e3-ea3682bcafd0" />
 
