@@ -1,6 +1,29 @@
 [gd_scene format=3 uid="uid://dqrgqwhevogi4"]
 
-[ext_resource type="Script" uid="uid://bxc43v14pqwji" path="res://scripts/MainMenu.gd" id="menu_script"]
+[ext_resource type="Script" uid="uid://bxc43v14pqwji" path="res://scripts/MainMenu.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://bxnkl1i2qccvi" path="res://scripts/MainMenuParallax.gd" id="2_parallax"]
+[ext_resource type="Script" uid="uid://ign6iy1glgvc" path="res://scripts/ParallaxLayerData.gd" id="3_layerdata"]
+[ext_resource type="Texture2D" uid="uid://b8bjlrfgxja23" path="res://assets/ui/parallax/layer0.png" id="4_826wr"]
+[ext_resource type="Texture2D" uid="uid://e0shwulf5n1y" path="res://assets/ui/parallax/layer1.png" id="5_ucygd"]
+[ext_resource type="Texture2D" uid="uid://ns6wsjbpbslv" path="res://assets/ui/parallax/layer2.png" id="6_mipys"]
+
+[sub_resource type="Resource" id="Resource_8a8k8"]
+script = ExtResource("3_layerdata")
+texture_path = "res://assets/ui/parallax/layer0.png"
+parallax_speed = 5.0
+scale = 1.3
+
+[sub_resource type="Resource" id="Resource_7la6k"]
+script = ExtResource("3_layerdata")
+texture_path = "res://assets/ui/parallax/layer1.png"
+parallax_speed = 15.0
+scale = 1.15
+
+[sub_resource type="Resource" id="Resource_2nypq"]
+script = ExtResource("3_layerdata")
+texture_path = "res://assets/ui/parallax/layer2.png"
+parallax_speed = 30.0
+scale = 1.05
 
 [sub_resource type="StyleBoxFlat" id="btn_normal"]
 bg_color = Color(0.15, 0.15, 0.2, 1)
@@ -27,14 +50,54 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="MainMenu" type="Control" unique_id=724656065]
-process_mode = 0
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("menu_script")
+script = ExtResource("1_main")
+
+[node name="ParallaxBackground" type="Control" parent="." unique_id=999999999]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_parallax")
+layers = Array[ExtResource("3_layerdata")]([SubResource("Resource_8a8k8"), SubResource("Resource_7la6k"), SubResource("Resource_2nypq")])
+
+[node name="Layer0" type="TextureRect" parent="ParallaxBackground" unique_id=1431687332]
+layout_mode = 0
+offset_left = -16.0
+offset_top = -4.0
+offset_right = 1280.0
+offset_bottom = 726.0
+mouse_filter = 2
+texture = ExtResource("4_826wr")
+expand_mode = 1
+
+[node name="Layer1" type="TextureRect" parent="ParallaxBackground" unique_id=1753857359]
+layout_mode = 0
+offset_left = -280.0
+offset_top = -19.0
+offset_right = 1627.0
+offset_bottom = 1070.0
+mouse_filter = 2
+texture = ExtResource("5_ucygd")
+expand_mode = 1
+
+[node name="Layer2" type="TextureRect" parent="ParallaxBackground" unique_id=1944065430]
+layout_mode = 0
+offset_left = 63.0
+offset_top = 118.0
+offset_right = 906.0
+offset_bottom = 776.0
+mouse_filter = 2
+texture = ExtResource("6_mipys")
+expand_mode = 1
 
 [node name="Background" type="ColorRect" parent="." unique_id=1259568917]
 layout_mode = 1
@@ -43,7 +106,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.08, 0.85)
+color = Color(0.05, 0.05, 0.08, 0.3)
 
 [node name="VBox" type="VBoxContainer" parent="." unique_id=128018578]
 layout_mode = 1
