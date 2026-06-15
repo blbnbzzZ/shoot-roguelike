@@ -120,7 +120,7 @@ func _start_dungeon() -> void:
 	if main_menu:
 		main_menu.hide_menu()
 	if pause_menu:
-		pause_menu.game_started = true
+		pass  ## game_started 已从 PauseMenu 移除，暂停菜单现在始终响应输入
 	_setup_player()
 	_generate_floor()
 	_connect_signals()
@@ -944,11 +944,10 @@ func _update_ui() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	## 主菜单的ESC处理保留在Main，暂停菜单的ESC由PauseMenu自行处理
 	if event.is_action_pressed("ui_cancel"):
 		if main_menu and main_menu.visible:
-			return
-		if pause_menu:
-			pause_menu.toggle_pause()
+			get_tree().quit()
 
 
 func _on_resume_game() -> void:
