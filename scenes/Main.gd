@@ -85,8 +85,8 @@ func _ready() -> void:
 	if death_screen and death_screen.has_method("show_death"):
 		death_screen.restart_game.connect(_on_restart_game)
 		death_screen.quit_to_menu.connect(_on_quit_to_menu_from_death)
-	## 直接进入地牢
-	_start_dungeon()
+	## 启动时显示主菜单，不直接进入地牢
+	_show_main_menu()
 
 
 func _show_main_menu() -> void:
@@ -99,7 +99,6 @@ func _show_main_menu() -> void:
 		if not main_menu.quit_game.is_connected(_on_quit_game):
 			main_menu.quit_game.connect(_on_quit_game)
 	if pause_menu:
-		pause_menu.game_started = false
 		if not pause_menu.resume_game.is_connected(_on_resume_game):
 			pause_menu.resume_game.connect(_on_resume_game)
 		if not pause_menu.quit_to_menu.is_connected(_on_quit_to_menu):
@@ -107,10 +106,12 @@ func _show_main_menu() -> void:
 
 
 func _on_start_game() -> void:
-	## 隐藏主菜单，切换到主城
+	## 直接进入地牢（小镇功能暂未实现，预留接口）
+	## TODO: 未来在此处可插入小镇场景切换逻辑
+	## 例：get_tree().change_scene_to_file("res://scenes/town/Town.tscn")
 	if main_menu:
 		main_menu.hide_menu()
-	get_tree().change_scene_to_file("res://scenes/town/Town.tscn")
+	_start_dungeon()
 
 
 func _start_dungeon() -> void:
@@ -973,7 +974,7 @@ func _on_quit_to_menu() -> void:
 	player.visible = false
 	player.process_mode = Node.PROCESS_MODE_DISABLED
 	if pause_menu:
-		pause_menu.game_started = false
+		pass
 	if main_menu:
 		main_menu.show_menu()
 
@@ -1231,7 +1232,7 @@ func _on_quit_to_menu_from_death() -> void:
 	player.visible = false
 	player.process_mode = Node.PROCESS_MODE_DISABLED
 	if pause_menu:
-		pause_menu.game_started = false
+		pass
 	if main_menu:
 		main_menu.show_menu()
 
