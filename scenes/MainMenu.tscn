@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://b8bjlrfgxja23" path="res://assets/ui/parallax/layer0.png" id="4_826wr"]
 [ext_resource type="Texture2D" uid="uid://e0shwulf5n1y" path="res://assets/ui/parallax/layer1.png" id="5_ucygd"]
 [ext_resource type="Texture2D" uid="uid://ns6wsjbpbslv" path="res://assets/ui/parallax/layer2.png" id="6_mipys"]
+[ext_resource type="Texture2D" uid="uid://d175m1qi0ot6g" path="res://assets/ui/title_cn.png" id="7_title"]
 
 [sub_resource type="Resource" id="Resource_8a8k8"]
 script = ExtResource("3_layerdata")
@@ -108,6 +109,24 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.05, 0.08, 0.3)
 
+[node name="TitleImage" type="TextureRect" parent="." unique_id=570169737]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -367.0
+offset_top = -368.0
+offset_right = 369.0
+offset_bottom = -31.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("7_title")
+expand_mode = 1
+stretch_mode = 6
+
 [node name="VBox" type="VBoxContainer" parent="." unique_id=128018578]
 layout_mode = 1
 anchors_preset = 8
@@ -115,19 +134,12 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -120.0
-offset_right = 150.0
-offset_bottom = 120.0
+offset_left = -149.0
+offset_top = 66.0
+offset_right = 151.0
+offset_bottom = 306.0
 grow_horizontal = 2
-grow_vertical = 0
-
-[node name="Title" type="Label" parent="VBox" unique_id=570169737]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
-theme_override_font_sizes/font_size = 48
-text = "SOUL ROGUE"
-horizontal_alignment = 1
+grow_vertical = 2
 
 [node name="StartButton" type="Button" parent="VBox" unique_id=1005273955]
 layout_mode = 2
